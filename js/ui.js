@@ -34,7 +34,22 @@ const UI = {
       if (hasSubs) {
         e.stopPropagation();
         const sub = wrapper.querySelector('.cat-sub');
-        if (sub) sub.classList.toggle('open');
+        if (sub) {
+          const isOpen = sub.classList.contains('open');
+          // Close all other submenus at this level
+          const parent = wrapper.parentElement;
+          if (parent) {
+            parent.querySelectorAll('.cat-sub.open').forEach(m => {
+              if (m !== sub) m.classList.remove('open');
+            });
+          }
+          // Toggle this submenu
+          if (isOpen) {
+            sub.classList.remove('open');
+          } else {
+            sub.classList.add('open');
+          }
+        }
       }
     });
     wrapper.appendChild(btn);
