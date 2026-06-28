@@ -1,15 +1,15 @@
 {
   "rewrites": [
-    { "source": "/api/products",    "destination": "/api/products" },
-    { "source": "/api/categories",  "destination": "/api/categories" },
-    { "source": "/api/stock",       "destination": "/api/stock" },
-    { "source": "/api/checkout",    "destination": "/api/checkout" }
+    { "source": "/api/products",   "destination": "/api/products" },
+    { "source": "/api/categories", "destination": "/api/categories" },
+    { "source": "/api/stock",      "destination": "/api/stock" },
+    { "source": "/api/checkout",   "destination": "/api/checkout" }
   ],
   "headers": [
     {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "Access-Control-Allow-Origin",  "value": "https://brume-cachan.fr" },
+        { "key": "Access-Control-Allow-Origin",  "value": "*" },
         { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
         { "key": "Access-Control-Allow-Headers", "value": "Content-Type, x-brume-token" }
       ]
