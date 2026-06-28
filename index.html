@@ -5,204 +5,281 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Brüme — Concept Store · Cachan</title>
   <meta name="description" content="Brüme est un concept store à Cachan, entre galerie et boutique. Objets de décoration, papeterie, plantes et art de vivre choisis avec soin." />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=Space+Mono&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&family=Space+Mono&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
 
-  <!-- LOADER -->
-  <div id="loader">
-    <div class="loader-logo">Brüme</div>
-    <div class="loader-dots">
-      <div class="loader-dot"></div>
-      <div class="loader-dot"></div>
-      <div class="loader-dot"></div>
+<!-- MIST OVERLAY (shown during checkout redirect) -->
+<div id="mist-overlay">
+  <div class="overlay-logo">BRÜME</div>
+  <div class="overlay-dots"><span></span><span></span><span></span></div>
+</div>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-logo">Brüme</div>
+  <div class="loader-dots"><div class="loader-dot"></div><div class="loader-dot"></div><div class="loader-dot"></div></div>
+</div>
+
+<!-- ERROR -->
+<div id="error-banner" role="alert"></div>
+
+<!-- CART OVERLAY -->
+<div id="cart-overlay" onclick="UI.closeCart()"></div>
+
+<!-- CART PANEL -->
+<aside id="cart-panel" aria-label="Panier">
+  <div class="cart-header">
+    <h2 class="cart-title">Mon panier</h2>
+    <button class="cart-close" onclick="UI.closeCart()" aria-label="Fermer">×</button>
+  </div>
+  <div id="cart-body">
+    <div class="cart-empty">
+      <span class="cart-empty-icon">🛒</span>
+      <p>Panier vide</p>
+      <small>Ajoutez des produits pour commencer</small>
     </div>
   </div>
-
-  <!-- ERROR BANNER -->
-  <div id="error-banner" role="alert"></div>
-
-  <!-- CART OVERLAY -->
-  <div id="cart-overlay" onclick="UI.closeCart()"></div>
-
-  <!-- CART PANEL -->
-  <aside id="cart-panel" aria-label="Panier">
-    <div class="cart-header">
-      <h2 class="cart-title">Mon panier</h2>
-      <button class="cart-close" onclick="UI.closeCart()" aria-label="Fermer le panier">×</button>
+  <div id="cart-footer" style="display:none">
+    <div class="cart-total-row">
+      <span class="cart-total-label">Total</span>
+      <span id="cart-total">0,00 €</span>
     </div>
-    <div id="cart-body">
-      <div class="cart-empty">
-        <span class="cart-empty-icon">🛒</span>
-        <p>Votre panier est vide</p>
-        <small>Ajoutez des produits pour commencer</small>
-      </div>
+    <button id="checkout-btn" onclick="Store.checkout()">
+      Commander — paiement sécurisé
+    </button>
+    <div class="cart-reassurance">
+      <div class="reassurance-dot"></div>
+      Paiement géré par Hiboutik · Stripe
     </div>
-    <div id="cart-footer" style="display:none">
-      <div class="cart-total-row">
-        <span class="cart-total-label">Total</span>
-        <span id="cart-total">0,00 €</span>
-      </div>
-      <button id="checkout-btn" onclick="Store.checkout()">
-        Commander — payer sur Hiboutik
+  </div>
+</aside>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <span class="header-logo">Brüme</span>
+    <nav class="nav-left">
+      <a href="#boutique" class="hide-mobile">Collections</a>
+      <a href="#boutique" class="hide-mobile">Nouveautés</a>
+      <a href="#about" class="hide-mobile">Notre histoire</a>
+    </nav>
+    <div class="header-right">
+      <button class="cart-btn" onclick="UI.toggleCart()" aria-label="Ouvrir le panier">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <path d="M16 10a4 4 0 01-8 0"/>
+        </svg>
+        Panier
+        <span id="cart-count" aria-live="polite"></span>
       </button>
-      <div class="cart-reassurance">
-        <div class="reassurance-dot"></div>
-        Paiement sécurisé · Géré par Hiboutik
-      </div>
-    </div>
-  </aside>
-
-  <!-- ANNOUNCEMENT -->
-  <div class="announcement">
-    Livraison offerte dès <span>70 €</span> d'achat &nbsp;·&nbsp; Click &amp; Collect à Cachan
-  </div>
-
-  <!-- HEADER -->
-  <header>
-    <div class="header-inner">
-      <nav class="nav-left">
-        <a href="#boutique">Boutique</a>
-        <a href="#boutique">Nouveautés</a>
-        <a href="#contact">Contact</a>
-      </nav>
-      <div class="logo">
-        <a href="#">Br<span>ü</span>me</a>
-      </div>
-      <nav class="nav-right">
-        <button class="cart-btn" onclick="UI.toggleCart()" aria-label="Ouvrir le panier">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-            <line x1="3" y1="6" x2="21" y2="6"/>
-            <path d="M16 10a4 4 0 0 1-8 0"/>
-          </svg>
-          Panier
-          <span id="cart-count" aria-live="polite"></span>
-        </button>
-      </nav>
-    </div>
-  </header>
-
-  <!-- HERO -->
-  <section class="hero">
-    <div class="hero-text">
-      <p class="hero-eyebrow">— Concept Store · Cachan, France</p>
-      <h1 class="hero-title">
-        Entre galerie<br>et <em>boutique</em>
-      </h1>
-      <p class="hero-body">
-        Chez Brüme, chaque objet est choisi pour sa capacité à transformer un espace. Des pièces de décoration, de l'outillage élégant, et des trouvailles du quotidien.
-      </p>
-      <div class="hero-actions">
-        <a href="#boutique" class="btn-primary">Découvrir la boutique</a>
-      </div>
-    </div>
-    <div class="hero-visual">
-      <span class="hero-visual-emoji">🏺</span>
-      <p class="hero-visual-caption">Collection Printemps 2025</p>
-    </div>
-  </section>
-
-  <!-- SHOP -->
-  <section class="shop-section" id="boutique">
-    <div class="shop-header">
-      <h2 class="shop-title">Tous nos produits</h2>
-    </div>
-    <nav id="category-nav" aria-label="Filtrer par catégorie"></nav>
-    <div id="products-grid" role="list" aria-label="Produits"></div>
-  </section>
-
-  <!-- TRUST -->
-  <div class="trust-bar">
-    <div class="trust-inner">
-      <div class="trust-item">
-        <span class="trust-icon">🚚</span>
-        <div>
-          <span class="trust-label">Livraison rapide</span>
-          <span class="trust-sub">Offerte dès 70 €</span>
-        </div>
-      </div>
-      <div class="trust-item">
-        <span class="trust-icon">↩️</span>
-        <div>
-          <span class="trust-label">Retours 30 jours</span>
-          <span class="trust-sub">Satisfait ou remboursé</span>
-        </div>
-      </div>
-      <div class="trust-item">
-        <span class="trust-icon">📍</span>
-        <div>
-          <span class="trust-label">Click &amp; Collect</span>
-          <span class="trust-sub">2 Pl. Eustache Deschamps, Cachan</span>
-        </div>
-      </div>
-      <div class="trust-item">
-        <span class="trust-icon">🔒</span>
-        <div>
-          <span class="trust-label">Paiement sécurisé</span>
-          <span class="trust-sub">Géré par Hiboutik</span>
-        </div>
-      </div>
     </div>
   </div>
+</header>
 
-  <!-- FOOTER -->
-  <footer id="contact">
-    <div class="footer-inner">
-      <div class="footer-top">
-        <div>
-          <a href="#" class="footer-logo">Br<span>ü</span>me</a>
-          <p class="footer-about">Un lieu hybride entre galerie et boutique, niché à Cachan. Décoration, objets du quotidien et trouvailles d'artisans.</p>
-        </div>
-        <div class="footer-col">
-          <p class="footer-col-title">Boutique</p>
-          <ul>
-            <li><a href="#boutique">Tous les produits</a></li>
-            <li><a href="#boutique">Nouveautés</a></li>
-            <li><a href="#boutique">Soldes</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <p class="footer-col-title">Informations</p>
-          <ul>
-            <li><a href="#">À propos</a></li>
-            <li><a href="#">Livraison & retours</a></li>
-            <li><a href="#">Mentions légales</a></li>
-            <li><a href="#">CGV</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <p class="footer-col-title">Boutique physique</p>
-          <ul>
-            <li><a href="#">2 Place Eustache Deschamps</a></li>
-            <li><a href="#">94230 Cachan</a></li>
-            <li><a href="#">Mer–Sam : 11h–19h</a></li>
-            <li><a href="mailto:contact@brume-cachan.fr">contact@brume-cachan.fr</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <p class="footer-copy">© 2025 Brüme Concept Store · Tous droits réservés</p>
-        <div class="footer-payments">
-          <span class="payment-icon">VISA</span>
-          <span class="payment-icon">MC</span>
-          <span class="payment-icon">PAYPAL</span>
-          <span class="payment-icon">CB</span>
-        </div>
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-text-panel">
+    <p class="hero-eyebrow">Concept Store · Cachan, France</p>
+    <h1 class="hero-title">Entre galerie<br>et <em>boutique</em></h1>
+    <p class="hero-desc">
+      Chez Brüme, chaque objet est choisi pour sa capacité à transformer un espace.
+      Des pièces de décoration, de l'outillage élégant, et des trouvailles du quotidien.
+    </p>
+    <div class="hero-actions">
+      <a href="#boutique" class="btn-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        Découvrir la boutique
+      </a>
+      <a href="#about" class="btn-ghost">Notre histoire →</a>
+    </div>
+    <div class="stripe-badge">Paiement sécurisé · Stripe · CB, Visa, Mastercard</div>
+  </div>
+  <div class="hero-image-panel">
+    <img src="https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=1200&q=80" alt="Brüme Concept Store" />
+    <span class="hero-image-label">Collection Printemps 2025</span>
+  </div>
+</section>
+
+<!-- SHOP -->
+<section id="boutique">
+  <div class="section-header">
+    <h2 class="section-title">Tous nos produits</h2>
+  </div>
+  <nav id="category-nav" aria-label="Filtrer par catégorie"></nav>
+  <div id="products-grid" role="list"></div>
+</section>
+
+<hr class="divider" style="margin-top:60px;" />
+
+<!-- PROMO BANNER -->
+<div class="promo-banner">
+  <div class="promo-text">
+    <p class="eyebrow">Sélection du moment</p>
+    <h2>Des <em>soldes</em> qui valent le détour</h2>
+    <p>Une sélection d'objets soigneusement choisis, maintenant à prix réduit. Stocks limités.</p>
+    <button class="btn-primary" onclick="Store.filterByCategory(null); document.getElementById('boutique').scrollIntoView({behavior:'smooth'})">
+      Voir les soldes →
+    </button>
+  </div>
+  <div class="promo-visual">
+    <img src="https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=700&q=75" alt="Soldes Brüme" />
+    <span class="promo-visual-tag">jusqu'à −40 %</span>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- STORE STRIP -->
+<div class="store-strip">
+  <div class="store-item">
+    <div class="store-icon">📍</div>
+    <span class="store-label">Adresse</span>
+    <span class="store-value">2 pl. Eustache Deschamps, Cachan</span>
+  </div>
+  <div class="store-divider"></div>
+  <div class="store-item">
+    <div class="store-icon">🕐</div>
+    <span class="store-label">Horaires</span>
+    <span class="store-value">Mer – Sam · 11h – 19h</span>
+  </div>
+  <div class="store-divider"></div>
+  <div class="store-item">
+    <div class="store-icon">✉️</div>
+    <span class="store-label">Contact</span>
+    <span class="store-value">contact@brume-cachan.fr</span>
+  </div>
+</div>
+
+<!-- TRUST BAR -->
+<div class="trust-bar">
+  <div class="trust-inner">
+    <div class="trust-item">
+      <div class="trust-icon">🔒</div>
+      <h4>Paiement sécurisé</h4>
+      <p>Stripe · CB, Visa, Mastercard · SSL</p>
+    </div>
+    <div class="trust-item">
+      <div class="trust-icon">🚚</div>
+      <h4>Livraison Colissimo</h4>
+      <p>Expédition 24–48h · Suivi inclus</p>
+    </div>
+    <div class="trust-item">
+      <div class="trust-icon">🛍️</div>
+      <h4>Click &amp; Collect gratuit</h4>
+      <p>Retrait en boutique · Cachan</p>
+    </div>
+    <div class="trust-item">
+      <div class="trust-icon">↩️</div>
+      <h4>Retours facilités</h4>
+      <p>14 jours pour changer d'avis</p>
+    </div>
+  </div>
+</div>
+
+<!-- EDITORIAL -->
+<section class="editorial" id="about">
+  <div class="editorial-inner">
+    <div class="editorial-image">
+      <img src="https://images.unsplash.com/photo-1416339306562-f3d12fefd36f?w=700&q=75" alt="Brüme - Notre histoire" />
+    </div>
+    <div class="editorial-text">
+      <p class="eyebrow">Notre histoire</p>
+      <h2>Un lieu conçu pour <em>ralentir</em></h2>
+      <p>Brüme est née d'une envie simple : créer un endroit où l'on prend le temps de toucher, de sentir, de choisir. Des objets fabriqués avec soin, souvent en petite série, par des artisans qui ont encore quelque chose à dire.</p>
+      <p>La boutique de Cachan est ouverte depuis 2019. La boutique en ligne est le prolongement naturel de cet espace — même sélection, même exigence.</p>
+      <a href="#boutique" class="btn-primary">Découvrir la boutique →</a>
+    </div>
+  </div>
+</section>
+
+<!-- NEWSLETTER -->
+<div class="newsletter">
+  <h2>Restez dans la <em style="font-style:italic;color:var(--sand)">brume</em></h2>
+  <p>Nouveautés, événements en boutique, coups de cœur — une lettre par mois, pas plus.</p>
+  <div class="newsletter-form">
+    <input type="email" placeholder="votre@email.fr" />
+    <button type="button">S'abonner</button>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div class="brand-name">Brüme</div>
+      <p>Concept store à Cachan. Décoration, objets du quotidien et trouvailles d'artisans.</p>
+      <div class="footer-social">
+        <a href="#" class="social-link">📸</a>
+        <a href="#" class="social-link">📘</a>
+        <a href="#" class="social-link">📌</a>
       </div>
     </div>
-  </footer>
+    <div class="footer-col">
+      <p class="footer-col-title">Boutique</p>
+      <ul>
+        <li><a href="#boutique">Nouveautés</a></li>
+        <li><a href="#boutique">Décoration</a></li>
+        <li><a href="#boutique">Papeterie</a></li>
+        <li><a href="#boutique">Cuisine</a></li>
+        <li><a href="#boutique">Soldes</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <p class="footer-col-title">Informations</p>
+      <ul>
+        <li><a href="#about">À propos</a></li>
+        <li><a href="#">Livraison &amp; retours</a></li>
+        <li><a href="#">FAQ</a></li>
+        <li><a href="#">Contact</a></li>
+        <li><a href="#">Mentions légales</a></li>
+        <li><a href="#">CGV</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <p class="footer-col-title">Boutique physique</p>
+      <ul>
+        <li><a href="#">2 pl. Eustache Deschamps</a></li>
+        <li><a href="#">94230 Cachan</a></li>
+        <li><a href="#">Mer – Sam · 11h – 19h</a></li>
+        <li><a href="mailto:contact@brume-cachan.fr">contact@brume-cachan.fr</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p class="footer-copy">© 2025 Brüme Concept Store · Tous droits réservés</p>
+    <div class="footer-payments">
+      <span class="payment-icon">VISA</span>
+      <span class="payment-icon">MC</span>
+      <span class="payment-icon">CB</span>
+    </div>
+    <div class="footer-hiboutik-credit">Boutique propulsée par Hiboutik</div>
+  </div>
+</footer>
 
-  <!-- SCRIPTS — order matters -->
-  <script src="js/mock-data.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/ui.js"></script>
-  <script src="js/store.js"></script>
-  <script>
-    // Boot
-    document.addEventListener('DOMContentLoaded', () => Store.init());
-  </script>
+<script src="js/mock-data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/store.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => Store.init());
 
+  // Newsletter
+  document.querySelector('.newsletter-form button').addEventListener('click', () => {
+    const input = document.querySelector('.newsletter-form input');
+    const btn   = document.querySelector('.newsletter-form button');
+    if (input.value.trim().includes('@')) {
+      btn.textContent = '✓ Inscrit !'; btn.style.background = '#5BAA6A'; input.value = '';
+      setTimeout(() => { btn.textContent = "S'abonner"; btn.style.background = ''; }, 3000);
+    } else {
+      input.style.borderColor = '#c0392b'; input.focus();
+      setTimeout(() => { input.style.borderColor = ''; }, 2000);
+    }
+  });
+</script>
 </body>
 </html>
