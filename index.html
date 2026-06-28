@@ -47,42 +47,11 @@
       <button id="modal-add-btn" class="btn-primary modal-add">Ajouter au panier</button>
       <div class="modal-reassurance">
         <div class="reassurance-dot"></div>
-        Paiement sécurisé · Géré par Hiboutik
+        Paiement sécurisé · Stripe · Géré par Hiboutik
       </div>
     </div>
   </div>
 </div>
-
-<!-- CART OVERLAY -->
-<div id="cart-overlay" onclick="UI.closeCart()"></div>
-
-<!-- CART PANEL -->
-<aside id="cart-panel" aria-label="Panier">
-  <div class="cart-header">
-    <h2 class="cart-title">Mon panier</h2>
-    <button class="cart-close" onclick="UI.closeCart()" aria-label="Fermer">×</button>
-  </div>
-  <div id="cart-body">
-    <div class="cart-empty">
-      <span class="cart-empty-icon">🛒</span>
-      <p>Panier vide</p>
-      <small>Ajoutez des produits pour commencer</small>
-    </div>
-  </div>
-  <div id="cart-footer" style="display:none">
-    <div class="cart-total-row">
-      <span class="cart-total-label">Total</span>
-      <span id="cart-total">0,00 €</span>
-    </div>
-    <button id="checkout-btn" onclick="Store.checkout()">
-      Commander — paiement sécurisé
-    </button>
-    <div class="cart-reassurance">
-      <div class="reassurance-dot"></div>
-      Paiement géré par Hiboutik · Stripe
-    </div>
-  </div>
-</aside>
 
 <!-- HEADER -->
 <header>
@@ -94,15 +63,14 @@
       <a href="#about" class="hide-mobile">Notre histoire</a>
     </nav>
     <div class="header-right">
-      <button class="cart-btn" onclick="UI.toggleCart()" aria-label="Ouvrir le panier">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
-          <line x1="3" y1="6" x2="21" y2="6"/>
-          <path d="M16 10a4 4 0 01-8 0"/>
-        </svg>
-        Panier
-        <span id="cart-count" aria-live="polite"></span>
-      </button>
+       <a href="https://brumeconceptstore.hiboutik.com/myshop/" target="_blank" class="cart-btn" style="text-decoration:none">
+         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+           <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+           <line x1="3" y1="6" x2="21" y2="6"/>
+           <path d="M16 10a4 4 0 01-8 0"/>
+         </svg>
+         Boutique
+       </a>
     </div>
   </div>
 </header>
@@ -307,5 +275,50 @@
     }
   });
 </script>
+
+<!-- CART OVERLAY -->
+<div id="cart-overlay" onclick="UI.closeCart()"></div>
+
+<!-- CART PANEL -->
+<div id="cart-panel" role="dialog" aria-label="Panier">
+  <div class="cart-header">
+    <h2 class="cart-title">Votre panier</h2>
+    <button class="cart-close" onclick="UI.closeCart()" aria-label="Fermer">×</button>
+  </div>
+  <div id="cart-body" class="cart-body">
+    <div class="cart-empty">
+      <span class="cart-empty-icon">🛒</span>
+      <p>Panier vide</p>
+      <small>Ajoutez des produits pour commencer</small>
+    </div>
+  </div>
+  <div id="cart-footer" class="cart-footer" style="display:none">
+    <div class="cart-total-row">
+      <span class="cart-total-label">Total</span>
+      <span id="cart-total" class="cart-total-amount">0,00 €</span>
+    </div>
+    <div class="cart-redirect-notice">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+      Votre panier sera transféré automatiquement vers la boutique pour le paiement.
+    </div>
+    <button id="checkout-btn" class="btn-primary checkout-btn" onclick="Store.checkout()">
+      Commander — paiement sécurisé
+    </button>
+    <div class="cart-reassurance">
+      <div class="reassurance-dot"></div>
+      Paiement sécurisé · Stripe · Géré par Hiboutik
+    </div>
+  </div>
+</div>
+
+<!-- CHECKOUT LOADING OVERLAY -->
+<div id="checkout-loading" style="display:none;position:fixed;inset:0;background:rgba(17,16,16,0.92);z-index:9999;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;">
+  <div style="width:32px;height:32px;border:2px solid rgba(242,238,231,0.15);border-top-color:var(--sand);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+  <p style="font-family:var(--mono);font-size:11px;letter-spacing:0.1em;color:rgba(242,238,231,0.5);text-transform:uppercase;">Préparation du panier…</p>
+</div>
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
 </body>
 </html>
