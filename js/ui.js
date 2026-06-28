@@ -152,6 +152,8 @@ const UI = {
         Store.addToCart(p.product_id);
         addBtn.textContent = '✓ Ajouté !';
         setTimeout(() => { addBtn.textContent = 'Ajouter au panier'; }, 1200);
+        // Auto-open cart panel
+        setTimeout(() => UI.openCart(), 300);
       }
     };
 
