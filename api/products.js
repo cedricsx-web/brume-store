@@ -45,7 +45,7 @@ export default async function handler(req, res) {
           product_category:       parseInt(p.product_category) || 0,
           product_description:    p.products_desc || '', // ← correct field name
           // Image URL pattern — browser will fallback to gradient if 404
-          product_image: `https://${ACCOUNT}.hiboutik.com/myshop/images/?img=big_${p.product_id}-1.jpg`,
+          product_image: `/api/image?id=${p.product_id}`,
           tag: hasSale ? 'sale' : null
         };
       });
