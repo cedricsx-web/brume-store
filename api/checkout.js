@@ -1,109 +1,93 @@
 /**
  * /api/checkout.js — Vercel Serverless Function
  *
- * Receives the cart from the browser, creates a sale in Hiboutik,
- * and returns the Hiboutik payment page URL.
- *
- * The customer is then redirected to that URL — the only moment
- * they ever touch hiboutik.com.
+ * Creates a Hiboutik sale from the customer's cart,
+ * then returns the Hiboutik payment page URL.
  *
  * Flow:
- *   1. Browser POSTs cart to /api/checkout
- *   2. We create a sale in Hiboutik (POST /api/sales/)
- *   3. We add each cart line to the sale (POST /api/sales/{id}/line_items/)
- *   4. We return the Hiboutik payment URL
- *   5. Browser redirects the customer there
+ *   1. POST /sales/           → create empty sale, get sale_id
+ *   2. POST /sales/add_product/ → add each cart item
+ *   3. Return payment URL     → https://{account}.hiboutik.com/sale/{sale_id}
  */
 
-// Simple in-memory rate limiter — max 10 checkout attempts per IP per minute
+const ACCOUNT  = process.env.HIBOUTIK_ACCOUNT;
+const USER     = process.env.HIBOUTIK_USER;
+const KEY      = process.env.HIBOUTIK_API_KEY;
+const TOKEN    = process.env.BRUME_TOKEN;
+const STORE_ID = process.env.HIBOUTIK_STORE_ID || '1';
+
+// Simple rate limiter: max 10 checkout requests per IP per minute
 const rateLimitMap = new Map();
 function isRateLimited(ip) {
-  const now = Date.now();
-  const key = `${ip}:${Math.floor(now / 60000)}`; // per-minute bucket
-  const count = (rateLimitMap.get(key) ?? 0) + 1;
-  rateLimitMap.set(key, count);
-  // Cleanup old keys occasionally
-  if (rateLimitMap.size > 1000) {
+  const bucket = `${ip}:${Math.floor(Date.now() / 60000)}`;
+  const count = (rateLimitMap.get(bucket) ?? 0) + 1;
+  rateLimitMap.set(bucket, count);
+  if (rateLimitMap.size > 500) {
+    const current = Math.floor(Date.now() / 60000);
     for (const [k] of rateLimitMap) {
-      if (!k.endsWith(String(Math.floor(now / 60000)))) rateLimitMap.delete(k);
+      if (!k.endsWith(String(current))) rateLimitMap.delete(k);
     }
   }
   return count > 10;
 }
 
 export default async function handler(req, res) {
-  // Auth check
-  const token = req.headers['x-brume-token'];
-  if (token !== process.env.BRUME_TOKEN) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
+  if (req.headers['x-brume-token'] !== TOKEN) return res.status(401).json({ error: 'Unauthorized' });
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  // Rate limiting
   const ip = req.headers['x-forwarded-for'] ?? 'unknown';
-  if (isRateLimited(ip)) {
-    return res.status(429).json({ error: 'Too many requests. Please wait a moment.' });
-  }
+  if (isRateLimited(ip)) return res.status(429).json({ error: 'Trop de requêtes. Attendez un instant.' });
 
-  const { cart, customerInfo } = req.body;
-
-  // Validate cart
+  const { cart } = req.body;
   if (!cart || !Array.isArray(cart) || cart.length === 0) {
-    return res.status(400).json({ error: 'Cart is empty or invalid' });
-  }
-  if (cart.some(item => !item.product_id || !item.qty || item.qty < 1)) {
-    return res.status(400).json({ error: 'Invalid cart item' });
+    return res.status(400).json({ error: 'Panier vide ou invalide' });
   }
 
-  const account  = process.env.HIBOUTIK_ACCOUNT;
-  const user     = process.env.HIBOUTIK_USER;
-  const apiKey   = process.env.HIBOUTIK_API_KEY;
-  const storeId  = process.env.HIBOUTIK_STORE_ID || '1';
-  const auth     = 'Basic ' + Buffer.from(`${user}:${apiKey}`).toString('base64');
-  const headers  = { 'Authorization': auth, 'Content-Type': 'application/json', 'Accept': 'application/json' };
-  const base     = `https://${account}.hiboutik.com/api`;
+  const authHeader = 'Basic ' + Buffer.from(`${USER}:${KEY}`).toString('base64');
+  const jsonHeaders = { Authorization: authHeader, 'Content-Type': 'application/json', Accept: 'application/json' };
+  const base = `https://${ACCOUNT}.hiboutik.com/api`;
 
   try {
-    // ── STEP 1: Create a new sale in Hiboutik ──
+    // Step 1: Create a new sale
     const saleRes = await fetch(`${base}/sales/`, {
       method: 'POST',
-      headers,
+      headers: jsonHeaders,
       body: JSON.stringify({
-        store_id:       storeId,
-        currency_id:    1,       // EUR
-        sale_type:      'online',
-        // customer_id: customerInfo.hiboutik_customer_id  ← add when customer accounts are implemented
+        store_id:      parseInt(STORE_ID),
+        currency_code: 'EUR'
       })
     });
     if (!saleRes.ok) throw new Error(`Create sale failed: ${saleRes.status}`);
     const sale = await saleRes.json();
     const saleId = sale.sale_id ?? sale.id;
+    if (!saleId) throw new Error('No sale_id returned from Hiboutik');
 
-    // ── STEP 2: Add each cart item as a line ──
+    // Step 2: Add each product to the sale
     for (const item of cart) {
-      const lineRes = await fetch(`${base}/sales/${saleId}/line_items/`, {
+      const lineRes = await fetch(`${base}/sales/add_product/`, {
         method: 'POST',
-        headers,
+        headers: jsonHeaders,
         body: JSON.stringify({
-          product_id: item.product_id,
-          quantity:   item.qty,
-          unit_price: item.unit_price
+          sale_id:       saleId,
+          product_id:    item.product_id,
+          quantity:      item.qty,
+          product_price: item.unit_price.toString(),
+          size_id:       0
         })
       });
-      if (!lineRes.ok) throw new Error(`Add line item failed: ${lineRes.status}`);
+      if (!lineRes.ok) {
+        console.warn(`Add product ${item.product_id} failed: ${lineRes.status}`);
+      }
     }
 
-    // ── STEP 3: Return the Hiboutik payment page URL ──
-    // Hiboutik generates a unique payment URL per sale.
-    const paymentUrl = `https://${account}.hiboutik.com/sale_payment/${saleId}/`;
+    // Step 3: Return the Hiboutik payment URL
+    // Hiboutik's online payment page for a sale
+    const paymentUrl = `https://${ACCOUNT}.hiboutik.com/myshop/payment/${saleId}/`;
 
     return res.status(200).json({ sale_id: saleId, payment_url: paymentUrl });
 
   } catch (err) {
-    console.error('Checkout proxy error:', err);
-    return res.status(500).json({ error: 'Checkout failed. Please try again.' });
+    console.error('Checkout error:', err);
+    return res.status(500).json({ error: 'Erreur lors de la commande. Réessayez.' });
   }
 }
