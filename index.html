@@ -142,13 +142,13 @@
 
 <hr class="divider" style="margin-top:60px;" />
 
-<!-- PROMO BANNER -->
-<div class="promo-banner">
+<!-- PROMO BANNER — shown only when sale products exist -->
+<div id="promo-banner" class="promo-banner" style="display:none">
   <div class="promo-text">
     <p class="eyebrow">Sélection du moment</p>
     <h2>Des <em>soldes</em> qui valent le détour</h2>
     <p>Une sélection d'objets soigneusement choisis, maintenant à prix réduit. Stocks limités.</p>
-    <button class="btn-primary" onclick="Store.filterByCategory(null); document.getElementById('boutique').scrollIntoView({behavior:'smooth'})">
+    <button class="btn-primary" onclick="Store.filterBySale(); document.getElementById('boutique').scrollIntoView({behavior:'smooth'})">
       Voir les soldes →
     </button>
   </div>
@@ -158,7 +158,7 @@
   </div>
 </div>
 
-<hr class="divider" />
+<hr class="divider" id="promo-divider" style="display:none" />
 
 <!-- STORE STRIP -->
 <div class="store-strip">
