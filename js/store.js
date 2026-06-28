@@ -20,6 +20,13 @@ const Store = {
 
       UI.renderCategories(categories);
       UI.renderProducts(products, stock);
+
+      // Show soldes banner only if sale products exist
+      const hasSale = products.some(p => p.tag === 'sale');
+      const banner = document.getElementById('promo-banner');
+      const divider = document.getElementById('promo-divider');
+      if (banner) banner.style.display = hasSale ? '' : 'none';
+      if (divider) divider.style.display = hasSale ? '' : 'none';
       this.stopStockSync = startStockSync(this.onStockUpdate.bind(this));
     } catch (e) {
       UI.showError('Impossible de charger les produits. Réessayez dans un instant.');
@@ -45,28 +52,45 @@ const Store = {
     if (changed) { UI.showStockWarning(); this.renderCart(); }
   },
 
+  // Collect all category IDs under a given node (recursively)
+  _getAllCategoryIds(tree, targetId) {
+    const ids = [];
+    const search = (nodes) => {
+      for (const node of nodes) {
+        if (node.id === targetId) {
+          // Found it — collect this node and all its descendants
+          const collect = (n) => {
+            ids.push(n.id);
+            if (n.subcategories) n.subcategories.forEach(collect);
+          };
+          collect(node);
+          return true;
+        }
+        if (node.subcategories && search(node.subcategories)) return true;
+      }
+      return false;
+    };
+    search(tree);
+    return ids;
+  },
+
   filterByCategory(categoryId) {
     this.activeCategory = categoryId;
-    const filtered = categoryId === null
-      ? this.products
-      : this.products.filter(p => {
-          // Match direct category OR any subcategory of this parent
-          if (p.product_category === categoryId) return true;
-          const parent = this.categories.find(c => c.id === categoryId);
-          if (parent && parent.subcategories) {
-            return parent.subcategories.some(s => s.id === p.product_category);
-          }
-          return false;
-        });
+    let filtered;
+    if (categoryId === null) {
+      filtered = this.products;
+    } else {
+      // Get all descendant category IDs so clicking "Japon" shows all sub-sub products
+      const ids = this._getAllCategoryIds(this.categories, categoryId);
+      // ids includes the clicked category itself + all its children recursively
+      filtered = this.products.filter(p => ids.includes(p.product_category));
+    }
     UI.renderProducts(filtered, this.stock);
     UI.setActiveCategory(categoryId);
   },
 
   filterBySubCategory(subCategoryId) {
-    this.activeCategory = subCategoryId;
-    const filtered = this.products.filter(p => p.product_category === subCategoryId);
-    UI.renderProducts(filtered, this.stock);
-    UI.setActiveCategory(subCategoryId);
+    this.filterByCategory(subCategoryId);
   },
 
   addToCart(productId) {
@@ -114,6 +138,13 @@ const Store = {
     UI.renderCart(this.cart, this.getTotal(), this.getItemCount());
   },
 
+  filterBySale() {
+    this.activeCategory = 'sale';
+    const filtered = this.products.filter(p => p.tag === 'sale');
+    UI.renderProducts(filtered, this.stock);
+    UI.setActiveCategory(null);
+  },
+
   async checkout() {
     if (this.cart.length === 0) return;
     const cartPayload = this.cart.map(item => ({
@@ -125,10 +156,15 @@ const Store = {
     UI.showCheckoutLoading();
     try {
       const result = await API.checkout(cartPayload, {});
-      window.location.href = result.payment_url;
+      if (result.payment_url) {
+        window.location.href = result.payment_url;
+      } else {
+        UI.hideCheckoutLoading();
+        UI.showError('Erreur: ' + JSON.stringify(result));
+      }
     } catch (e) {
       UI.hideCheckoutLoading();
-      UI.showError('Une erreur est survenue. Veuillez réessayer.');
+      UI.showError('Erreur checkout: ' + e.message);
     }
   }
 };
