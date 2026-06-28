@@ -29,29 +29,31 @@ const UI = {
     btn.className = 'cat-btn' + (depth > 0 ? ' cat-btn-sub' : '');
     btn.dataset.catId = cat.id;
     btn.innerHTML = cat.name + (hasSubs ? ' <span class="cat-arrow">▾</span>' : '');
+    // Click: filter by category
     btn.addEventListener('click', (e) => {
       Store.filterByCategory(cat.id);
-      if (hasSubs) {
-        e.stopPropagation();
+    });
+    
+    // Hover: show/hide submenu (only if has subcategories)
+    if (hasSubs) {
+      wrapper.addEventListener('mouseenter', () => {
         const sub = wrapper.querySelector('.cat-sub');
         if (sub) {
-          const isOpen = sub.classList.contains('open');
-          // Close all other submenus at this level
+          // Close all other open submenus at this level
           const parent = wrapper.parentElement;
           if (parent) {
             parent.querySelectorAll('.cat-sub.open').forEach(m => {
               if (m !== sub) m.classList.remove('open');
             });
           }
-          // Toggle this submenu
-          if (isOpen) {
-            sub.classList.remove('open');
-          } else {
-            sub.classList.add('open');
-          }
+          sub.classList.add('open');
         }
-      }
-    });
+      });
+      wrapper.addEventListener('mouseleave', () => {
+        const sub = wrapper.querySelector('.cat-sub');
+        if (sub) sub.classList.remove('open');
+      });
+    }
     wrapper.appendChild(btn);
 
     if (hasSubs) {
