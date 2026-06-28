@@ -762,3 +762,68 @@ footer { background: #0c0c0c; border-top: 1px solid var(--light-mist); padding: 
   .modal-info { padding: 28px 24px; }
   #product-modal { max-height: 95vh; }
 }
+
+/* ── MODAL DESCRIPTION ─────────────────────────── */
+.modal-desc p {
+  margin-bottom: 10px;
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: rgba(242,238,231,0.55);
+}
+.modal-desc p:last-child { margin-bottom: 0; }
+.modal-desc ul, .modal-desc ol {
+  padding-left: 18px;
+  margin-bottom: 10px;
+  color: rgba(242,238,231,0.55);
+  font-size: 13.5px;
+  line-height: 1.75;
+}
+
+/* ── DESCRIPTION FORMATTING ────────────────────── */
+.modal-desc { font-size: 13.5px; line-height: 1.75; color: rgba(242,238,231,0.55); overflow-y: auto; max-height: 320px; padding-right: 4px; }
+.modal-desc p { margin-bottom: 10px; }
+.modal-desc p:last-child { margin-bottom: 0; }
+
+/* Section headers inside description */
+.modal-desc .desc-section {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sand);
+  margin-top: 18px;
+  margin-bottom: 6px !important;
+}
+.modal-desc .desc-section:first-child { margin-top: 0; }
+
+/* Bullet lists */
+.modal-desc ul {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 12px;
+}
+.modal-desc ul li {
+  padding-left: 14px;
+  position: relative;
+  margin-bottom: 4px;
+  color: rgba(242,238,231,0.55);
+}
+.modal-desc ul li::before {
+  content: '·';
+  position: absolute;
+  left: 0;
+  color: var(--sand);
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+/* Empty state */
+.modal-desc .desc-empty {
+  font-style: italic;
+  opacity: 0.3;
+}
+
+/* Scrollbar */
+.modal-desc::-webkit-scrollbar { width: 3px; }
+.modal-desc::-webkit-scrollbar-track { background: transparent; }
+.modal-desc::-webkit-scrollbar-thumb { background: rgba(242,238,231,0.15); border-radius: 2px; }
