@@ -131,7 +131,15 @@ const UI = {
     document.getElementById('modal-img-placeholder').style.display = 'none';
     document.getElementById('modal-name').textContent   = p.product_model;
     document.getElementById('modal-brand').textContent  = p.product_brand;
-    document.getElementById('modal-desc').textContent   = p.product_description || 'Aucune description disponible.';
+    const rawDesc = p.product_description || '';
+    const modalDesc = document.getElementById('modal-desc');
+    if (!rawDesc.trim()) {
+      modalDesc.innerHTML = '<p class="desc-empty">Aucune description disponible.</p>';
+    } else if (rawDesc.includes('<')) {
+      modalDesc.innerHTML = rawDesc;
+    } else {
+      modalDesc.innerHTML = formatDescription(rawDesc);
+    }
     document.getElementById('modal-price').innerHTML    = sale
       ? `<span class="old-price">${fmt(price)}</span> <span class="price-sale">${fmt(sale)}</span>`
       : fmt(price);
@@ -244,4 +252,61 @@ const FALLBACK_GRADIENTS = [
 ];
 function getFallbackGradient(id) {
   return FALLBACK_GRADIENTS[id % FALLBACK_GRADIENTS.length];
+}
+
+/* ── DESCRIPTION FORMATTER ───────────────────────
+ * Converts Hiboutik plain-text descriptions into
+ * readable HTML with sections, bullets and paragraphs.
+ */
+function formatDescription(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+  let html = '';
+  let i = 0;
+
+  // Skip first line if it's the product name (often repeated in description)
+  // Detect: very short all-caps or matches product title pattern — skip silently
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Section header — short line NOT starting with bullet,
+    // followed by content, no period at end usually
+    const nextLine = lines[i + 1] || '';
+    const isHeader = line.length < 60
+      && !line.startsWith('•')
+      && !line.startsWith('-')
+      && (nextLine.startsWith('•') || nextLine.startsWith('-') || nextLine.length > 40)
+      && !line.endsWith('.');
+
+    if (isHeader) {
+      html += `<p class="desc-section">${line}</p>`;
+      i++;
+      continue;
+    }
+
+    // Bullet point group
+    if (line.startsWith('•') || line.startsWith('-')) {
+      html += '<ul>';
+      while (i < lines.length && (lines[i].startsWith('•') || lines[i].startsWith('-'))) {
+        const bulletText = lines[i].replace(/^[•\-]\s*/, '').trim();
+        // Handle inline bullets separated by • on same line
+        if (bulletText.includes(' • ')) {
+          bulletText.split(' • ').forEach(b => {
+            if (b.trim()) html += `<li>${b.trim()}</li>`;
+          });
+        } else {
+          html += `<li>${bulletText}</li>`;
+        }
+        i++;
+      }
+      html += '</ul>';
+      continue;
+    }
+
+    // Regular paragraph
+    html += `<p>${line}</p>`;
+    i++;
+  }
+
+  return html || '<p class="desc-empty">Aucune description disponible.</p>';
 }
