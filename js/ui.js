@@ -48,7 +48,10 @@ const UI = {
 
     card.innerHTML = `
       <div class="product-img-wrap">
-        <img src="${p.product_image}" alt="${p.product_model}" loading="lazy" />
+        <img src="${p.product_image}" alt="${p.product_model}" loading="lazy"
+          style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+        <div class="product-img-placeholder" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;background:${getFallbackGradient(p.product_id)};font-size:48px;color:rgba(24,24,21,0.15);font-family:var(--serif);letter-spacing:0.08em;font-weight:300;">Brüme</div>
         ${p.tag === 'new'  ? '<span class="product-badge">Nouveau</span>' : ''}
         ${p.tag === 'sale' ? '<span class="product-badge sale">Soldes</span>' : ''}
         ${oos              ? '<span class="product-badge oos">Rupture</span>' : ''}
@@ -165,4 +168,23 @@ const UI = {
 
 function fmt(n) {
   return new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(n);
+}
+
+/* ── IMAGE FALLBACK ──────────────────────────
+ * Hiboutik products may not have images uploaded yet.
+ * This generates a branded gradient placeholder instead.
+ */
+const FALLBACK_GRADIENTS = [
+  'linear-gradient(145deg,#E2D9CC,#C8BBA8)',
+  'linear-gradient(145deg,#CDD5D2,#A9B7B3)',
+  'linear-gradient(145deg,#D9CFBF,#BFB09C)',
+  'linear-gradient(145deg,#E8E0D5,#D0C5B5)',
+  'linear-gradient(145deg,#CCC4B8,#AFA598)',
+  'linear-gradient(145deg,#C8D0CC,#A8B5B0)',
+  'linear-gradient(145deg,#D4CCB8,#BEB49E)',
+  'linear-gradient(145deg,#B8C4B0,#8BA882)',
+];
+
+function getFallbackGradient(productId) {
+  return FALLBACK_GRADIENTS[productId % FALLBACK_GRADIENTS.length];
 }
