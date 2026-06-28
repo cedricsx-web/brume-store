@@ -149,27 +149,13 @@ const Store = {
     if (this.cart.length === 0) return;
     UI.showCheckoutLoading();
 
-    const cartPayload = this.cart.map(item => ({
-      product_id: item.product.product_id,
-      qty:        item.qty,
-      unit_price: parseFloat(item.product.product_discount_price || item.product.product_price)
-    }));
+    // Encode cart as product_id:qty pairs
+    const cartParam = this.cart
+      .map(item => item.product.product_id + ':' + item.qty)
+      .join(',');
 
-    try {
-      const res = await fetch('/api/checkout', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ cart: cartPayload })
-      });
-
-      const data = await res.json();
-      const url  = data.payment_url || 'https://brumeconceptstore.hiboutik.com/myshop/';
-      window.location.href = url;
-
-    } catch(e) {
-      UI.hideCheckoutLoading();
-      UI.showError('Une erreur est survenue. Réessayez.');
-      console.error(e);
-    }
+    // Redirect to Hiboutik — the injected JS there catches brume_cart and fills the cart
+    window.location.href =
+      'https://brumeconceptstore.hiboutik.com/myshop/?brume_cart=' + encodeURIComponent(cartParam);
   }
 };
