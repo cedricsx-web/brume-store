@@ -149,55 +149,27 @@ const Store = {
     if (this.cart.length === 0) return;
     UI.showCheckoutLoading();
 
-    const HIBOUTIK = 'https://brumeconceptstore.hiboutik.com/myshop/';
-
-    // Silently add each cart item to Hiboutik via hidden iframes
-    // then redirect to Hiboutik checkout — cart is pre-filled
-    const addItem = (productId, qty) => new Promise((resolve) => {
-      const iframe = document.createElement('iframe');
-      iframe.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;border:none;';
-      document.body.appendChild(iframe);
-
-      const doc = iframe.contentDocument || iframe.contentWindow.document;
-      doc.open();
-      doc.write([
-        '<form method="post" action="' + HIBOUTIK + '?page=product&id=' + productId + '">',
-        '<input type="hidden" name="action" value="add_to_basket">',
-        '<input type="hidden" name="product_id_add_b" value="' + productId + '">',
-        '<input type="hidden" name="size_add_b" value="0">',
-        '<input type="hidden" name="qtity_dispo[0]" value="99">',
-        '<input type="hidden" name="quantite_add_b" value="' + qty + '">',
-        '<input type="hidden" name="comments_add_b" value="">',
-        '</form>',
-        '<script>document.forms[0].submit();<\/script>'
-      ].join(''));
-      doc.close();
-
-      // Wait for iframe to finish loading (form processed + redirect)
-      const timeout = setTimeout(() => {
-        document.body.removeChild(iframe);
-        resolve();
-      }, 3000);
-
-      iframe.onload = () => {
-        clearTimeout(timeout);
-        setTimeout(() => {
-          try { document.body.removeChild(iframe); } catch(e) {}
-          resolve();
-        }, 400);
-      };
-    });
+    const cartPayload = this.cart.map(item => ({
+      product_id: item.product.product_id,
+      qty:        item.qty,
+      unit_price: parseFloat(item.product.product_discount_price || item.product.product_price)
+    }));
 
     try {
-      // Add items one by one (sequential — shares Hiboutik session cookie)
-      for (const item of this.cart) {
-        await addItem(item.product.product_id, item.qty);
-      }
-      // All items added — redirect to Hiboutik checkout
-      window.location.href = HIBOUTIK + '?page=order';
+      const res = await fetch('/api/checkout', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ cart: cartPayload })
+      });
+
+      const data = await res.json();
+      const url  = data.payment_url || 'https://brumeconceptstore.hiboutik.com/myshop/';
+      window.location.href = url;
+
     } catch(e) {
-      // Fallback: redirect to Hiboutik homepage
-      window.location.href = HIBOUTIK;
+      UI.hideCheckoutLoading();
+      UI.showError('Une erreur est survenue. Réessayez.');
+      console.error(e);
     }
   }
 };
