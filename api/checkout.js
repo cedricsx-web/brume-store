@@ -1,73 +1,103 @@
-const ACCOUNT  = process.env.HIBOUTIK_ACCOUNT;
-const USER     = process.env.HIBOUTIK_USER;
-const KEY      = process.env.HIBOUTIK_API_KEY;
-const STORE_ID = process.env.HIBOUTIK_STORE_ID || '1';
+/**
+ * /api/checkout.js
+ *
+ * Server-side cart transfer to Hiboutik myshop.
+ *
+ * Flow:
+ *  1. GET Hiboutik myshop → capture session cookie
+ *  2. POST each cart item using that session (server-side, no CORS issues)
+ *  3. Redirect customer to Hiboutik checkout with session ID in URL
+ *     PHP trans-sid allows session transfer via URL parameter
+ *
+ * No POS sales created. No accounting impact.
+ */
+
+const ACCOUNT = process.env.HIBOUTIK_ACCOUNT;
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== 'POST') return res.status(405).end();
 
-  const { cart } = req.body ?? {};
-  if (!cart || !Array.isArray(cart) || cart.length === 0) {
-    return res.status(400).json({ error: 'Panier vide' });
+  let body = req.body;
+  if (typeof body === 'string') {
+    try { body = JSON.parse(body); } catch(e) { return res.status(400).json({ error: 'Invalid JSON' }); }
   }
 
-  const auth = 'Basic ' + Buffer.from(`${USER}:${KEY}`).toString('base64');
-  const base = `https://${ACCOUNT}.hiboutik.com/api`;
+  const cart = body?.cart;
+  if (!cart?.length) return res.status(400).json({ error: 'Empty cart' });
 
-  // Step 1 — Create sale
-  let saleRes, saleText;
+  const BASE = `https://${ACCOUNT}.hiboutik.com/myshop`;
+
   try {
-    saleRes  = await fetch(`${base}/sales/`, {
-      method: 'POST',
-      headers: { Authorization: auth, 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ store_id: parseInt(STORE_ID), currency_code: 'EUR' })
+    // Step 1 — Initialise a Hiboutik myshop session
+    const initRes = await fetch(`${BASE}/`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; BrumeBot/1.0)',
+        'Accept': 'text/html'
+      },
+      redirect: 'follow'
     });
-    saleText = await saleRes.text();
-  } catch(e) {
-    return res.status(500).json({ step: 'create_sale', error: e.message });
-  }
 
-  if (!saleRes.ok) {
-    return res.status(500).json({ step: 'create_sale', status: saleRes.status, body: saleText });
-  }
+    // Extract session cookie from response
+    const rawCookies = initRes.headers.get('set-cookie') || '';
+    const sessionMatch = rawCookies.match(/([A-Za-z_]+SESSION[A-Za-z_]*)=([^;]+)/i)
+      || rawCookies.match(/([A-Za-z_]{6,})=([a-zA-Z0-9]{20,})/);
 
-  let sale;
-  try { sale = JSON.parse(saleText); } catch(e) {
-    return res.status(500).json({ step: 'parse_sale', raw: saleText });
-  }
-
-  // Hiboutik returns the sale_id in different ways depending on version
-  const saleId = sale.sale_id ?? sale.id ?? (typeof sale === 'number' ? sale : null);
-  if (!saleId) {
-    return res.status(500).json({ step: 'no_sale_id', raw: sale });
-  }
-
-  // Step 2 — Add each product
-  const errors = [];
-  for (const item of cart) {
-    try {
-      const r = await fetch(`${base}/sales/add_product/`, {
-        method: 'POST',
-        headers: { Authorization: auth, 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({
-          sale_id:       saleId,
-          product_id:    item.product_id,
-          quantity:      item.qty,
-          product_price: String(item.unit_price),
-          size_id:       0
-        })
+    if (!sessionMatch) {
+      return res.status(200).json({
+        payment_url: `${BASE}/`,
+        warning: 'No session cookie found — cart may be empty'
       });
-      if (!r.ok) errors.push({ product_id: item.product_id, status: r.status, body: await r.text() });
-    } catch(e) {
-      errors.push({ product_id: item.product_id, error: e.message });
     }
-  }
 
-  // Step 3 — Return sale_id + payment URL
-  // Redirect to Hiboutik myshop with the open sale
-  return res.status(200).json({
-    sale_id:     saleId,
-    errors:      errors,
-    payment_url: `https://${ACCOUNT}.hiboutik.com/myshop/`
-  });
+    const cookieName = sessionMatch[1];
+    const cookieValue = sessionMatch[2];
+    const cookieHeader = `${cookieName}=${cookieValue}`;
+
+    console.log('Session established:', cookieName, '=', cookieValue.substring(0, 8) + '...');
+
+    // Step 2 — Add each item to cart server-side
+    for (const item of cart) {
+      const body = new URLSearchParams({
+        action:              'add_to_basket',
+        product_id_add_b:    String(item.product_id),
+        size_add_b:          '0',
+        'qtity_dispo[0]':    '99',
+        quantite_add_b:      String(item.qty),
+        comments_add_b:      ''
+      });
+
+      const addRes = await fetch(`${BASE}/?page=product&id=${item.product_id}`, {
+        method:  'POST',
+        headers: {
+          'Cookie':       cookieHeader,
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent':   'Mozilla/5.0 (compatible; BrumeBot/1.0)',
+          'Referer':      `${BASE}/?page=product&id=${item.product_id}`,
+          'Origin':       `https://${ACCOUNT}.hiboutik.com`
+        },
+        body:    body.toString(),
+        redirect: 'manual'  // don't follow redirect — just confirm it was processed
+      });
+
+      console.log(`Added product ${item.product_id} x${item.qty} — status: ${addRes.status}`);
+    }
+
+    // Step 3 — Build checkout URL
+    // Try PHP trans-sid (session via URL) — works if Hiboutik has it enabled
+    const checkoutUrl = `${BASE}/?page=order&${cookieName}=${cookieValue}`;
+
+    return res.status(200).json({
+      payment_url: checkoutUrl,
+      session_cookie: cookieName,
+      // Also return fallback in case trans-sid is disabled
+      fallback_url: `${BASE}/?page=order`
+    });
+
+  } catch(err) {
+    console.error('Checkout error:', err);
+    return res.status(500).json({
+      error: err.message,
+      payment_url: `${BASE}/`
+    });
+  }
 }
