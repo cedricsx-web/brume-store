@@ -29,7 +29,7 @@ export default async function handler(req, res) {
 
     const products = rawProducts
       // Only exclude archived products — show all others regardless of display_www
-      .filter(p => p.product_arch !== 1 && p.product_arch !== '1')
+      .filter(p => p.product_arch !== 1 && p.product_arch !== '1' && (p.product_display_www == 1 || p.product_display_www === '1'))
       .map(p => {
         const price    = parseFloat(p.product_price) || 0;
         const discount = parseFloat(p.product_discount_price) || 0;
