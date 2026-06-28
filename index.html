@@ -27,6 +27,32 @@
 <!-- ERROR -->
 <div id="error-banner" role="alert"></div>
 
+
+<!-- PRODUCT MODAL OVERLAY -->
+<div id="modal-overlay" onclick="UI.closeModal()"></div>
+
+<!-- PRODUCT MODAL -->
+<div id="product-modal" role="dialog" aria-modal="true">
+  <button class="modal-close" onclick="UI.closeModal()" aria-label="Fermer">×</button>
+  <div class="modal-inner">
+    <div class="modal-img-wrap">
+      <img id="modal-img" src="" alt="" />
+      <div id="modal-img-placeholder" style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-family:var(--serif);font-size:24px;color:rgba(242,238,231,0.15);letter-spacing:0.1em;">Brüme</div>
+    </div>
+    <div class="modal-info">
+      <p id="modal-brand" class="modal-brand"></p>
+      <h2 id="modal-name" class="modal-name"></h2>
+      <p id="modal-price" class="modal-price"></p>
+      <p id="modal-desc" class="modal-desc"></p>
+      <button id="modal-add-btn" class="btn-primary modal-add">Ajouter au panier</button>
+      <div class="modal-reassurance">
+        <div class="reassurance-dot"></div>
+        Paiement sécurisé · Géré par Hiboutik
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- CART OVERLAY -->
 <div id="cart-overlay" onclick="UI.closeCart()"></div>
 
