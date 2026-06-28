@@ -5,19 +5,57 @@ const UI = {
   showError(msg){ const el = document.getElementById('error-banner'); el.textContent = msg; el.classList.add('active'); setTimeout(()=>el.classList.remove('active'),5000); },
   showStockWarning() { this.showError('Stock mis à jour — votre panier a été ajusté.'); },
 
-  renderCategories(cats) {
+  renderCategories(tree) {
     const nav = document.getElementById('category-nav');
-    nav.appendChild(this._catBtn(null,'Tout voir',true));
-    cats.forEach(c => nav.appendChild(this._catBtn(c.categories_id, c.categories_name)));
+    nav.innerHTML = '';
+
+    // "Tout voir" button
+    const allBtn = document.createElement('button');
+    allBtn.className = 'cat-btn active';
+    allBtn.dataset.catId = 'all';
+    allBtn.textContent = 'Tout voir';
+    allBtn.addEventListener('click', () => Store.filterByCategory(null));
+    nav.appendChild(allBtn);
+
+    // Parent categories with optional subcategory dropdowns
+    tree.forEach(cat => {
+      const hasSubs = cat.subcategories && cat.subcategories.length > 0;
+      const wrapper = document.createElement('div');
+      wrapper.className = 'cat-wrapper';
+
+      const btn = document.createElement('button');
+      btn.className = 'cat-btn';
+      btn.dataset.catId = cat.id;
+      btn.textContent = cat.name + (hasSubs ? ' ▾' : '');
+      btn.addEventListener('click', () => {
+        Store.filterByCategory(cat.id);
+        // Toggle subcategory dropdown
+        const sub = wrapper.querySelector('.cat-sub');
+        if (sub) sub.classList.toggle('open');
+      });
+      wrapper.appendChild(btn);
+
+      if (hasSubs) {
+        const sub = document.createElement('div');
+        sub.className = 'cat-sub';
+        cat.subcategories.forEach(s => {
+          const subBtn = document.createElement('button');
+          subBtn.className = 'cat-btn cat-btn-sub';
+          subBtn.dataset.catId = s.id;
+          subBtn.textContent = s.name;
+          subBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            Store.filterBySubCategory(s.id);
+            sub.classList.remove('open');
+          });
+          sub.appendChild(subBtn);
+        });
+        wrapper.appendChild(sub);
+      }
+      nav.appendChild(wrapper);
+    });
   },
-  _catBtn(id, label, active=false) {
-    const btn = document.createElement('button');
-    btn.className = 'cat-btn' + (active?' active':'');
-    btn.dataset.catId = id ?? 'all';
-    btn.textContent = label;
-    btn.addEventListener('click', () => Store.filterByCategory(id));
-    return btn;
-  },
+
   setActiveCategory(id) {
     document.querySelectorAll('.cat-btn').forEach(btn => {
       btn.classList.toggle('active',

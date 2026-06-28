@@ -1,16 +1,10 @@
-/**
- * store.js — Cart state, product rendering, checkout flow
- */
-
 const Store = {
   products: [],
-  categories: [],
+  categories: [],  // tree with subcategories
   stock: {},
-  cart: [],          // [{ product, qty }]
+  cart: [],
   activeCategory: null,
   stopStockSync: null,
-
-  /* ── INIT ───────────────────────────────────── */
 
   async init() {
     UI.showLoader();
@@ -35,8 +29,6 @@ const Store = {
     }
   },
 
-  /* ── STOCK SYNC ─────────────────────────────── */
-
   onStockUpdate(newStock) {
     this.stock = newStock;
     UI.updateStockBadges(newStock);
@@ -44,54 +36,50 @@ const Store = {
   },
 
   syncCartWithStock(stock) {
-    // If something in cart is now out of stock, clamp qty
     let changed = false;
     this.cart = this.cart.map(item => {
       const available = stock[item.product.product_id] ?? 0;
-      if (item.qty > available) {
-        changed = true;
-        return { ...item, qty: available };
-      }
+      if (item.qty > available) { changed = true; return { ...item, qty: available }; }
       return item;
     }).filter(item => item.qty > 0);
-
-    if (changed) {
-      UI.showStockWarning();
-      this.renderCart();
-    }
+    if (changed) { UI.showStockWarning(); this.renderCart(); }
   },
-
-  /* ── CATEGORY FILTER ─────────────────────────── */
 
   filterByCategory(categoryId) {
     this.activeCategory = categoryId;
     const filtered = categoryId === null
       ? this.products
-      : this.products.filter(p => p.product_category === categoryId);
+      : this.products.filter(p => {
+          // Match direct category OR any subcategory of this parent
+          if (p.product_category === categoryId) return true;
+          const parent = this.categories.find(c => c.id === categoryId);
+          if (parent && parent.subcategories) {
+            return parent.subcategories.some(s => s.id === p.product_category);
+          }
+          return false;
+        });
     UI.renderProducts(filtered, this.stock);
     UI.setActiveCategory(categoryId);
   },
 
-  /* ── CART ────────────────────────────────────── */
+  filterBySubCategory(subCategoryId) {
+    this.activeCategory = subCategoryId;
+    const filtered = this.products.filter(p => p.product_category === subCategoryId);
+    UI.renderProducts(filtered, this.stock);
+    UI.setActiveCategory(subCategoryId);
+  },
 
   addToCart(productId) {
     const product = this.products.find(p => p.product_id === productId);
     if (!product) return;
-
-    const available = this.stock[productId] ?? 0;
-    if (available === 0) return;
-
+    const available = this.stock[productId] ?? 99; // if no stock management, allow adding
     const existing = this.cart.find(i => i.product.product_id === productId);
     if (existing) {
-      if (existing.qty >= available) {
-        UI.flashCartItem(productId, 'max');
-        return;
-      }
+      if (existing.qty >= available) { UI.flashCartItem(productId); return; }
       existing.qty++;
     } else {
       this.cart.push({ product, qty: 1 });
     }
-
     UI.animateCartBadge();
     this.renderCart();
   },
@@ -104,16 +92,11 @@ const Store = {
   updateQty(productId, delta) {
     const item = this.cart.find(i => i.product.product_id === productId);
     if (!item) return;
-    const available = this.stock[productId] ?? 0;
+    const available = this.stock[productId] ?? 99;
     const newQty = item.qty + delta;
-    if (newQty <= 0) {
-      this.removeFromCart(productId);
-    } else if (newQty > available) {
-      UI.flashCartItem(productId, 'max');
-    } else {
-      item.qty = newQty;
-      this.renderCart();
-    }
+    if (newQty <= 0) { this.removeFromCart(productId); }
+    else if (newQty > available) { UI.flashCartItem(productId); }
+    else { item.qty = newQty; this.renderCart(); }
   },
 
   getTotal() {
@@ -131,28 +114,21 @@ const Store = {
     UI.renderCart(this.cart, this.getTotal(), this.getItemCount());
   },
 
-  /* ── CHECKOUT ────────────────────────────────── */
-
   async checkout() {
     if (this.cart.length === 0) return;
-
     const cartPayload = this.cart.map(item => ({
       product_id:    item.product.product_id,
       product_model: item.product.product_model,
       qty:           item.qty,
       unit_price:    parseFloat(item.product.product_discount_price || item.product.product_price)
     }));
-
     UI.showCheckoutLoading();
-
     try {
       const result = await API.checkout(cartPayload, {});
-      // Redirect to Hiboutik payment page
       window.location.href = result.payment_url;
     } catch (e) {
       UI.hideCheckoutLoading();
       UI.showError('Une erreur est survenue. Veuillez réessayer.');
-      console.error(e);
     }
   }
 };
