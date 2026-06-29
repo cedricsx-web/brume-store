@@ -21,11 +21,10 @@ const UI = {
 
   _catItem(cat, depth) {
     // Only show submenu if there are real subcategories (not VIDE, not empty)
-    const hasSubs = cat.subcategories && cat.subcategories.length > 0 && 
-                    cat.subcategories.some(s => s.name && s.name.trim() !== '' && s.name !== 'VIDE');
-    // Also filter the subcategories displayed
+    // Filter subcategories: remove VIDE and empty names
     const visibleSubs = cat.subcategories ? 
       cat.subcategories.filter(s => s.name && s.name.trim() !== '' && s.name !== 'VIDE') : [];
+    const hasSubs = visibleSubs.length > 0;
     const wrapper = document.createElement('div');
     wrapper.className = 'cat-wrapper';
     wrapper.style.marginLeft = depth > 0 ? (depth * 8) + 'px' : '0';
