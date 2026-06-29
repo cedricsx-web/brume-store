@@ -36,7 +36,9 @@ const UI = {
     
     // Hover: show/hide submenu (only if has subcategories)
     if (hasSubs) {
+      let closeTimeout = null;
       wrapper.addEventListener('mouseenter', () => {
+        if (closeTimeout) clearTimeout(closeTimeout);
         const sub = wrapper.querySelector('.cat-sub');
         if (sub) {
           // Close all other open submenus at this level
@@ -50,13 +52,15 @@ const UI = {
         }
       });
       wrapper.addEventListener('mouseleave', () => {
-        const sub = wrapper.querySelector('.cat-sub');
-        if (sub) sub.classList.remove('open');
+        closeTimeout = setTimeout(() => {
+          const sub = wrapper.querySelector('.cat-sub');
+          if (sub) sub.classList.remove('open');
+        }, 300); // 300ms delay before closing
       });
     }
     wrapper.appendChild(btn);
 
-    if (hasSubs) {
+    if (hasSubs && cat.subcategories.length > 0) {
       const sub = document.createElement('div');
       sub.className = 'cat-sub';
       cat.subcategories.forEach(s => sub.appendChild(this._catItem(s, depth + 1)));
