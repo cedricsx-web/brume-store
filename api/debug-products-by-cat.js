@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     // Count products by category_id
     const catCounts = {};
     visibleProducts.forEach(p => {
-      const catId = String(p.category_id || 0);
+      const catId = String(p.product_category || 0);
       catCounts[catId] = (catCounts[catId] || 0) + 1;
     });
     
