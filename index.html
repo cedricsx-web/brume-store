@@ -258,18 +258,7 @@
 <script>
   document.addEventListener('DOMContentLoaded', () => Store.init());
 
-  // Newsletter
-  document.querySelector('.newsletter-form button').addEventListener('click', () => {
-    const input = document.querySelector('.newsletter-form input');
-    const btn   = document.querySelector('.newsletter-form button');
-    if (input.value.trim().includes('@')) {
-      btn.textContent = '✓ Inscrit !'; btn.style.background = '#5BAA6A'; input.value = '';
-      setTimeout(() => { btn.textContent = "S'abonner"; btn.style.background = ''; }, 3000);
-    } else {
-      input.style.borderColor = '#c0392b'; input.focus();
-      setTimeout(() => { input.style.borderColor = ''; }, 2000);
-    }
-  });
+  // Newsletter removed — will be re-added when connected to Hiboutik
 </script>
 
 <!-- CART OVERLAY -->
