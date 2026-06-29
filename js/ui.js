@@ -147,7 +147,7 @@ const UI = {
     const sale  = p.product_discount_price ? parseFloat(p.product_discount_price) : null;
     const oos   = qty === 0;
 
-    document.getElementById('modal-img').src = p.product_image;
+    document.getElementById('modal-img').src = `https://brumeconceptstore.hiboutik.com/myshop/images/?img=big_${p.product_id}-1.jpg`;
     document.getElementById('modal-img').onerror = function() {
       this.style.display = 'none';
       document.getElementById('modal-img-placeholder').style.display = 'flex';
