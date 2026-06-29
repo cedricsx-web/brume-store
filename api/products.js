@@ -22,11 +22,10 @@ export default async function handler(req, res) {
     );
     const allProducts = await productsRes.json();
 
-    // Filter: display_www = 1, not archived
-    const visible = allProducts.filter(p =>
-      (p.product_display_www == 1 || p.product_display_www === '1') &&
-      (p.product_arch !== 1 && p.product_arch !== '1')
-    );
+    // Return ALL products (even those not flagged for online display)
+    // Only exclude archived ones
+    const visible = allProducts; // or filter out arch if needed
+    // .filter(p => (p.product_arch !== 1 && p.product_arch !== '1'));
 
     // Transform: use product_category instead of category_id
     const products = visible.map(p => ({
