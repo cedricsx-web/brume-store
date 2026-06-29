@@ -20,7 +20,12 @@ const UI = {
   },
 
   _catItem(cat, depth) {
-    const hasSubs = cat.subcategories && cat.subcategories.length > 0 && cat.subcategories.some(s => s.name && s.name.trim() !== '' && s.name !== 'VIDE');
+    // Only show submenu if there are real subcategories (not VIDE, not empty)
+    const hasSubs = cat.subcategories && cat.subcategories.length > 0 && 
+                    cat.subcategories.some(s => s.name && s.name.trim() !== '' && s.name !== 'VIDE');
+    // Also filter the subcategories displayed
+    const visibleSubs = cat.subcategories ? 
+      cat.subcategories.filter(s => s.name && s.name.trim() !== '' && s.name !== 'VIDE') : [];
     const wrapper = document.createElement('div');
     wrapper.className = 'cat-wrapper';
     wrapper.style.marginLeft = depth > 0 ? (depth * 8) + 'px' : '0';
@@ -60,10 +65,10 @@ const UI = {
     }
     wrapper.appendChild(btn);
 
-    if (hasSubs && cat.subcategories.length > 0) {
+    if (hasSubs && visibleSubs.length > 0) {
       const sub = document.createElement('div');
       sub.className = 'cat-sub';
-      cat.subcategories.forEach(s => sub.appendChild(this._catItem(s, depth + 1)));
+      visibleSubs.forEach(s => sub.appendChild(this._catItem(s, depth + 1)));
       wrapper.appendChild(sub);
     }
     return wrapper;
