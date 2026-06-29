@@ -18,9 +18,6 @@ const Store = {
       this.categories = categories;
       this.stock      = stock;
 
-      console.log('Loaded products:', products.length);
-      console.log('Product categories sample:', products.slice(0, 5).map(p => ({ id: p.product_id, cat: p.product_category })));
-
       UI.renderCategories(categories);
       UI.renderProducts(products, stock);
 
@@ -31,12 +28,11 @@ const Store = {
       if (banner) banner.style.display = hasSale ? '' : 'none';
       if (divider) divider.style.display = hasSale ? '' : 'none';
       this.stopStockSync = startStockSync(this.onStockUpdate.bind(this));
-    } catch (e) {
-      console.error('Store init error:', e);
-      console.error('Message:', e.message);
-      console.error('Stack:', e.stack);
+    } catch (err) {
+      console.error('Store init error:', err);
       UI.hideLoader();
-      UI.showError('Erreur: ' + e.message);
+    } finally {
+      UI.hideLoader();
     }
   },
 
