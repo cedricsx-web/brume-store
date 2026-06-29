@@ -10,13 +10,30 @@ const UI = {
   renderCategories(tree) {
     const nav = document.getElementById('category-nav');
     nav.innerHTML = '';
+
+    // Sélection du mois button (first, highlighted)
+    const selBtn = document.createElement('button');
+    selBtn.className = 'cat-btn cat-btn-selection active';
+    selBtn.dataset.catId = 'selection';
+    selBtn.textContent = 'Sélection du mois';
+    selBtn.addEventListener('click', () => Store.filterBySelection());
+    nav.appendChild(selBtn);
+
     const allBtn = document.createElement('button');
-    allBtn.className = 'cat-btn active';
+    allBtn.className = 'cat-btn';
     allBtn.dataset.catId = 'all';
     allBtn.textContent = 'Tout voir';
     allBtn.addEventListener('click', () => Store.filterByCategory(null));
     nav.appendChild(allBtn);
+
     tree.forEach(cat => nav.appendChild(this._catItem(cat, 0)));
+
+    // Wire header nav links to Sélection du mois
+    const navSel = document.getElementById('nav-selection');
+    const mobileNavSel = document.getElementById('mobile-nav-selection');
+    const handler = (e) => { e.preventDefault(); Store.filterBySelection(); document.getElementById('boutique')?.scrollIntoView({behavior:'smooth'}); };
+    if (navSel) navSel.addEventListener('click', handler);
+    if (mobileNavSel) mobileNavSel.addEventListener('click', handler);
   },
 
   _catItem(cat, depth) {
@@ -75,9 +92,15 @@ const UI = {
 
   setActiveCategory(id) {
     document.querySelectorAll('.cat-btn').forEach(btn => {
-      btn.classList.toggle('active',
-        id === null ? btn.dataset.catId === 'all' : btn.dataset.catId == id
-      );
+      let active;
+      if (id === 'selection') {
+        active = btn.dataset.catId === 'selection';
+      } else if (id === null) {
+        active = btn.dataset.catId === 'all';
+      } else {
+        active = btn.dataset.catId == id;
+      }
+      btn.classList.toggle('active', active);
     });
   },
 

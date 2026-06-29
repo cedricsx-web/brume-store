@@ -19,7 +19,8 @@ const Store = {
       this.stock      = stock;
 
       UI.renderCategories(categories);
-      UI.renderProducts(products, stock);
+      UI.renderProducts(this._homeSelection(products, categories), stock);
+      UI.setActiveCategory('selection');
 
       // Show soldes banner only if sale products exist
       const hasSale = products.some(p => p.tag === 'sale');
@@ -72,6 +73,43 @@ const Store = {
     };
     search(tree);
     return ids;
+  },
+
+  // Build a curated homepage selection: first + last product of each root category, max 16 total
+  _homeSelection(products, categories) {
+    const selected = [];
+    const seen = new Set();
+
+    const addProduct = (p) => {
+      if (!seen.has(p.product_id)) {
+        seen.add(p.product_id);
+        selected.push(p);
+      }
+    };
+
+    for (const cat of categories) {
+      if (selected.length >= 16) break;
+
+      // Collect all category IDs under this root (including subcategories)
+      const ids = this._getAllCategoryIds(categories, cat.id);
+      const catProducts = products.filter(p => ids.includes(p.product_category));
+
+      if (catProducts.length === 0) continue;
+
+      addProduct(catProducts[0]);
+      if (catProducts.length > 1) addProduct(catProducts[catProducts.length - 1]);
+
+      if (selected.length >= 16) break;
+    }
+
+    return selected.slice(0, 16);
+  },
+
+  filterBySelection() {
+    this.activeCategory = 'selection';
+    const filtered = this._homeSelection(this.products, this.categories);
+    UI.renderProducts(filtered, this.stock);
+    UI.setActiveCategory('selection');
   },
 
   filterByCategory(categoryId) {
