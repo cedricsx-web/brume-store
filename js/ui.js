@@ -103,7 +103,7 @@ const UI = {
 
     card.innerHTML = `
       <div class="product-img-wrap" role="button" tabindex="0" aria-label="Voir ${p.product_model}">
-        <img src="${p.product_image}" alt="${p.product_model}" loading="lazy"
+        <img src="https://brumeconceptstore.hiboutik.com/myshop/images/?img=big_${p.product_id}-1.jpg" alt="${p.product_model}" loading="lazy"
           style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;"
           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
         <div class="product-img-placeholder" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;background:${getFallbackGradient(p.product_id)};font-size:32px;color:rgba(242,238,231,0.15);font-family:var(--serif);letter-spacing:0.08em;font-weight:300;">Brüme</div>
