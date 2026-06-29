@@ -18,6 +18,9 @@ const Store = {
       this.categories = categories;
       this.stock      = stock;
 
+      console.log('Loaded products:', products.length);
+      console.log('Product categories sample:', products.slice(0, 5).map(p => ({ id: p.product_id, cat: p.product_category })));
+
       UI.renderCategories(categories);
       UI.renderProducts(products, stock);
 
@@ -29,10 +32,11 @@ const Store = {
       if (divider) divider.style.display = hasSale ? '' : 'none';
       this.stopStockSync = startStockSync(this.onStockUpdate.bind(this));
     } catch (e) {
-      UI.showError('Impossible de charger les produits. Réessayez dans un instant.');
-      console.error(e);
-    } finally {
+      console.error('Store init error:', e);
+      console.error('Message:', e.message);
+      console.error('Stack:', e.stack);
       UI.hideLoader();
+      UI.showError('Erreur: ' + e.message);
     }
   },
 
