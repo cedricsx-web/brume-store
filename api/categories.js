@@ -32,11 +32,10 @@ export default async function handler(req, res) {
     const catsRes = await fetch(`https://${ACCOUNT}.hiboutik.com/api/categories`, { headers });
     const rawCats = await catsRes.json();
 
-    // Filter: only categories enabled for website display (category_enabled_www = 1)
-    // Exclude VIDE and empty names
+    // Filter: show ALL categories regardless of category_enabled_www
+    // Only exclude VIDE placeholders and empty names
     const filtered = rawCats
-      .filter(c => (c.category_enabled_www == 1 || c.category_enabled_www === '1') && 
-                   c.category_name && c.category_name.trim() !== '' &&
+      .filter(c => c.category_name && c.category_name.trim() !== '' &&
                    c.category_name !== 'VIDE')
       .map(c => ({
         id: parseInt(c.category_id),
