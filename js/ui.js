@@ -20,7 +20,7 @@ const UI = {
   },
 
   _catItem(cat, depth) {
-    const hasSubs = cat.subcategories && cat.subcategories.length > 0;
+    const hasSubs = cat.subcategories && cat.subcategories.length > 0 && cat.subcategories.some(s => s.name && s.name.trim() !== '' && s.name !== 'VIDE');
     const wrapper = document.createElement('div');
     wrapper.className = 'cat-wrapper';
     wrapper.style.marginLeft = depth > 0 ? (depth * 8) + 'px' : '0';
