@@ -1,7 +1,7 @@
 /**
  * /api/categories
  * Fetch categories from Hiboutik and build a tree.
- * Only include categories that have products flagged for display.
+ * Show ALL categories (even if no products), but filter out VIDE placeholders.
  */
 const ACCOUNT = process.env.HIBOUTIK_ACCOUNT;
 const USER    = process.env.HIBOUTIK_USER;
@@ -28,34 +28,17 @@ export default async function handler(req, res) {
   try {
     const headers = { Authorization: auth(), Accept: 'application/json' };
 
-    // Fetch both categories and products
-    const [catsRes, prodsRes] = await Promise.all([
-      fetch(`https://${ACCOUNT}.hiboutik.com/api/categories`, { headers }),
-      fetch(`https://${ACCOUNT}.hiboutik.com/api/products/`, { headers })
-    ]);
-
+    // Fetch categories
+    const catsRes = await fetch(`https://${ACCOUNT}.hiboutik.com/api/categories`, { headers });
     const rawCats = await catsRes.json();
-    const rawProds = await prodsRes.json();
 
-    // Get all category IDs that have visible products
-    const catIdsWithProducts = new Set();
-    rawProds
-      .filter(p => (p.product_display_www == 1 || p.product_display_www === '1') && 
-                    p.product_arch !== 1 && p.product_arch !== '1')
-      .forEach(p => {
-        const catId = parseInt(p.product_category) || 0;
-        if (catId !== 0) catIdsWithProducts.add(catId);
-      });
-
-    // Filter categories: only include if enabled and (has products OR has children with products)
-    const hasProductsRecursive = (catId) => {
-      if (catIdsWithProducts.has(catId)) return true;
-      const children = rawCats.filter(c => c.category_id_parent == catId);
-      return children.some(c => hasProductsRecursive(parseInt(c.category_id)));
-    };
-
+    // Filter: enabled categories, exclude VIDE and empty names, exclude Emballages (73) and a reclasser (76)
     const filtered = rawCats
-      .filter(c => c.category_enabled !== '0' && hasProductsRecursive(parseInt(c.category_id)))
+      .filter(c => c.category_enabled !== '0' && 
+                   c.category_name && c.category_name.trim() !== '' &&
+                   c.category_name !== 'VIDE' &&
+                   c.category_id !== '73' &&  // Emballages
+                   c.category_id !== '76')    // a reclasser
       .map(c => ({
         id: parseInt(c.category_id),
         name: c.category_name,
