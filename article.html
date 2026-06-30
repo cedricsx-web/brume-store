@@ -154,7 +154,6 @@
   <div class="nav-links">
     <a href="index.html">Boutique</a>
     <a href="editions.html">Éditions</a>
-    <a href="#">À propos</a>
     <a href="#" id="cart-link" class="cart-link" onclick="event.preventDefault(); openCartPanel()">Panier <span id="cart-badge"></span></a>
   </div>
 </nav>
@@ -219,10 +218,12 @@
       if (ids.length) {
         const items = ids.map(pid => `
           <div class="related-item" data-pid="${pid}">
-            <div class="related-item-img">
-              <img src="https://brumeconceptstore.hiboutik.com/myshop/images/?img=big_${pid}-1.jpg" alt="Produit ${pid}" onerror="this.style.display='none'">
-            </div>
-            <div class="related-item-name">Produit #${pid}</div>
+            <a href="index.html?product=${pid}" class="related-item-link" style="text-decoration:none;color:inherit;display:block;">
+              <div class="related-item-img">
+                <img src="https://brumeconceptstore.hiboutik.com/myshop/images/?img=big_${pid}-1.jpg" alt="Produit ${pid}" onerror="this.style.display='none'">
+              </div>
+              <div class="related-item-name">Voir le produit #${pid}</div>
+            </a>
             <button class="related-add-btn" onclick="addRelatedToCart('${pid}', this)">Ajouter au panier</button>
           </div>`).join('')
 
@@ -362,11 +363,11 @@ async function renderCartPanel() {
       const price = parseFloat(product.product_discount_price || product.product_price)
       return `
         <div class="cart-item-row" data-id="${product.product_id}">
-          <div class="cart-item-img">
+          <a href="index.html?product=${product.product_id}" class="cart-item-img" style="display:block">
             <img src="https://brumeconceptstore.hiboutik.com/myshop/images/?img=big_${product.product_id}-1.jpg" alt="" onerror="this.style.display='none'">
-          </div>
+          </a>
           <div>
-            <div class="cart-item-name">${product.product_model || 'Produit #' + product.product_id}</div>
+            <a href="index.html?product=${product.product_id}" class="cart-item-name" style="text-decoration:none;color:inherit;display:block">${product.product_model || 'Produit #' + product.product_id}</a>
             <div class="cart-item-price">${fmtPrice(price * qty)}</div>
           </div>
           <div class="cart-item-qty">

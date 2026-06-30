@@ -20,6 +20,9 @@
   .nav-links { display: flex; gap: 32px; }
   .nav-links a { font-family: 'Space Mono', monospace; font-size: .65rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); text-decoration: none; opacity: .7; transition: opacity .2s; }
   .nav-links a:hover, .nav-links a.active { opacity: 1; color: var(--green); }
+  .cart-link { display: inline-flex; align-items: center; gap: 6px; }
+  #cart-badge { background: var(--green); color: var(--linen); font-size: .6rem; padding: 1px 6px; border-radius: 10px; display: none; }
+  #cart-badge.visible { display: inline-block; }
 
   /* HERO */
   .hero { padding: 120px 40px 60px; border-bottom: 1px solid rgba(26,26,24,.12); display: grid; grid-template-columns: 1fr 1fr; align-items: end; gap: 40px; }
@@ -90,7 +93,7 @@
   <div class="nav-links">
     <a href="index.html">Boutique</a>
     <a href="editions.html" class="active">Éditions</a>
-    <a href="#">À propos</a>
+    <a href="index.html#boutique" class="cart-link">Panier <span id="cart-badge"></span></a>
   </div>
 </nav>
 
@@ -111,6 +114,16 @@
 </div>
 
 <script src="js/cms.js"></script>
+<script>
+  // Badge panier (lit le localStorage partagé)
+  (function () {
+    const badge = document.getElementById('cart-badge')
+    if (!badge) return
+    const count = getLocalCartCount()
+    badge.textContent = count
+    badge.classList.toggle('visible', count > 0)
+  })()
+</script>
 <script>
 (async () => {
   try {

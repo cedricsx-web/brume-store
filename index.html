@@ -213,9 +213,8 @@
       <div class="brand-name">Brüme</div>
       <p>Concept store à Cachan. Décoration, objets du quotidien et trouvailles d'artisans.</p>
       <div class="footer-social">
-        <a href="#" class="social-link">📸</a>
-        <a href="#" class="social-link">📘</a>
-        <a href="#" class="social-link">📌</a>
+        <a href="https://www.instagram.com/brume_conceptstore/" target="_blank" rel="noopener" class="social-link" aria-label="Instagram">📸</a>
+        <a href="https://www.facebook.com/full.lebazar/" target="_blank" rel="noopener" class="social-link" aria-label="Facebook">📘</a>
       </div>
     </div>
     <div class="footer-col">
@@ -233,11 +232,9 @@
       <p class="footer-col-title">Informations</p>
       <ul>
         <li><a href="#about">À propos</a></li>
-        <li><a href="#">Livraison &amp; retours</a></li>
-        <li><a href="#">FAQ</a></li>
-        <li><a href="#">Contact</a></li>
-        <li><a href="#">Mentions légales</a></li>
-        <li><a href="#">CGV</a></li>
+        <li><a href="mailto:contact@brume-cachan.fr">Contact</a></li>
+        <li><a href="mentions-legales.html">Mentions légales</a></li>
+        <li><a href="cgv.html">CGV</a></li>
       </ul>
     </div>
     <div class="footer-col">
@@ -268,16 +265,28 @@
 <script src="js/cms.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
-    Store.init();
+    Store.init().then(openProductFromUrl);
     loadHistoiresPreview();
   });
+
+  // Ouvre la modale d'un produit si l'URL contient ?product=ID
+  // (utilisé par les liens produit depuis les articles et le panier)
+  function openProductFromUrl() {
+    const id = new URLSearchParams(window.location.search).get('product');
+    if (!id) return;
+    const p = Store.products.find(x => String(x.product_id) === String(id));
+    if (!p) return;
+    const qty = Store.stock[p.product_id] ?? 99;
+    document.getElementById('boutique')?.scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => UI.openModal(p, qty), 400);
+  }
 
   async function loadHistoiresPreview() {
     const grid = document.getElementById('histoires-grid');
     if (!grid) return;
     try {
       const articles = await getArticles();
-      const preview = articles.slice(0, 3);
+      const preview = articles.slice(0, 2);
       if (!preview.length) {
         document.getElementById('histoires-preview').style.display = 'none';
         return;
