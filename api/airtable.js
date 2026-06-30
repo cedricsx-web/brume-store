@@ -24,9 +24,9 @@ export default async function handler(req, res) {
     let options = { headers }
 
     if (req.method === 'GET') {
-      // Passer les query params (filterByFormula, sort, fields, etc.)
-      const params = new URLSearchParams(req.query)
-      if ([...params].length) url += `?${params}`
+      // Transférer la query string brute (évite que Vercel déforme fields[] répétés)
+      const rawQuery = req.url.split('?')[1]
+      if (rawQuery) url += `?${rawQuery}`
 
     } else if (req.method === 'POST') {
       options = { method: 'POST', headers, body: JSON.stringify(req.body) }
