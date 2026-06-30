@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brüme — Admin Éditions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400&family=DM+Sans:wght@300;400;500&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --black: #1a1a18; --linen: #f5f2ed; --green: #2d4a3e; --sand: #c8b89a; --mist: #e8e4dd; --ink: #3a3a37; --red: #c0392b; }
+  body { background: var(--mist); color: var(--black); font-family: 'DM Sans', sans-serif; font-weight: 300; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+
+  /* LAYOUT */
+  .admin-wrap { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
+
+  /* SIDEBAR */
+  .sidebar { background: var(--black); padding: 32px 24px; position: sticky; top: 0; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; }
+  .sidebar-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; letter-spacing: .12em; text-transform: uppercase; color: var(--linen); margin-bottom: 8px; }
+  .sidebar-sub { font-family: 'Space Mono', monospace; font-size: .58rem; letter-spacing: .14em; text-transform: uppercase; color: var(--sand); margin-bottom: 40px; }
+  .btn-new { width: 100%; background: var(--green); color: var(--linen); border: none; padding: 14px; font-family: 'Space Mono', monospace; font-size: .65rem; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; transition: opacity .2s; margin-bottom: 32px; }
+  .btn-new:hover { opacity: .85; }
+  .sidebar-section { font-family: 'Space Mono', monospace; font-size: .55rem; letter-spacing: .18em; text-transform: uppercase; color: var(--sand); opacity: .6; margin-bottom: 12px; }
+  .article-list { flex: 1; }
+  .article-item { padding: 14px 16px; cursor: pointer; border-radius: 2px; margin-bottom: 2px; transition: background .2s; border-left: 2px solid transparent; }
+  .article-item:hover { background: rgba(255,255,255,.06); }
+  .article-item.active { background: rgba(255,255,255,.08); border-left-color: var(--green); }
+  .article-item-title { font-size: .88rem; color: var(--linen); line-height: 1.3; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .article-item-meta { font-family: 'Space Mono', monospace; font-size: .56rem; color: var(--sand); opacity: .6; }
+  .article-item-status { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 6px; }
+  .article-item-status.published { background: #4caf50; }
+  .article-item-status.draft { background: var(--sand); }
+  .sidebar-footer { margin-top: auto; padding-top: 24px; border-top: 1px solid rgba(255,255,255,.08); }
+  .sidebar-footer a { font-family: 'Space Mono', monospace; font-size: .58rem; letter-spacing: .1em; text-transform: uppercase; color: var(--sand); opacity: .5; text-decoration: none; transition: opacity .2s; }
+  .sidebar-footer a:hover { opacity: 1; }
+
+  /* MAIN */
+  .main { padding: 48px; }
+  .main-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; }
+  .main-title { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-weight: 300; }
+  .main-actions { display: flex; gap: 12px; }
+
+  /* BUTTONS */
+  .btn { font-family: 'Space Mono', monospace; font-size: .62rem; letter-spacing: .12em; text-transform: uppercase; padding: 12px 24px; border: none; cursor: pointer; transition: all .2s; }
+  .btn-save { background: var(--green); color: var(--linen); }
+  .btn-save:hover { opacity: .85; }
+  .btn-publish { background: var(--black); color: var(--linen); }
+  .btn-publish:hover { opacity: .8; }
+  .btn-delete { background: none; color: var(--red); border: 1px solid var(--red); }
+  .btn-delete:hover { background: var(--red); color: white; }
+  .btn-share-fb { background: #1877f2; color: white; }
+  .btn-share-fb:hover { opacity: .85; }
+  .btn-share-ig { background: #c13584; color: white; }
+  .btn-share-ig:hover { opacity: .85; }
+
+  /* FORM */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+  .form-group { display: flex; flex-direction: column; gap: 8px; }
+  .form-group.full { grid-column: 1 / -1; }
+  label { font-family: 'Space Mono', monospace; font-size: .58rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink); opacity: .6; }
+  input, select, textarea { background: var(--linen); border: 1px solid rgba(26,26,24,.15); padding: 12px 16px; font-family: 'DM Sans', sans-serif; font-size: .9rem; color: var(--black); outline: none; transition: border-color .2s; width: 100%; }
+  input:focus, select:focus, textarea:focus { border-color: var(--green); }
+  textarea { resize: vertical; line-height: 1.7; }
+  .textarea-contenu { min-height: 320px; font-size: .88rem; }
+  .field-hint { font-size: .75rem; color: var(--ink); opacity: .45; margin-top: 4px; }
+  .checkbox-group { display: flex; align-items: center; gap: 10px; padding: 12px 0; }
+  .checkbox-group input[type=checkbox] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--green); }
+  .checkbox-group label { font-family: 'DM Sans', sans-serif; font-size: .88rem; text-transform: none; letter-spacing: 0; opacity: 1; cursor: pointer; }
+
+  /* PREVIEW */
+  .preview-img { width: 100%; height: 200px; object-fit: cover; background: var(--black); display: block; margin-top: 8px; }
+  .preview-img-empty { width: 100%; height: 100px; background: rgba(26,26,24,.06); display: flex; align-items: center; justify-content: center; margin-top: 8px; }
+  .preview-img-empty span { font-family: 'Space Mono', monospace; font-size: .6rem; color: var(--ink); opacity: .35; }
+
+  /* SHARE SECTION */
+  .share-section { background: var(--linen); border: 1px solid rgba(26,26,24,.1); padding: 28px; margin-top: 32px; }
+  .share-title { font-family: 'Space Mono', monospace; font-size: .6rem; letter-spacing: .16em; text-transform: uppercase; color: var(--ink); opacity: .5; margin-bottom: 16px; }
+  .share-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  /* EMPTY STATE */
+  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; gap: 16px; opacity: .4; }
+  .empty-state p { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-style: italic; }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 32px; right: 32px; background: var(--black); color: var(--linen); padding: 14px 24px; font-family: 'Space Mono', monospace; font-size: .65rem; letter-spacing: .1em; opacity: 0; transform: translateY(10px); transition: all .3s; pointer-events: none; z-index: 999; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.success { border-left: 3px solid #4caf50; }
+  .toast.error { border-left: 3px solid var(--red); }
+
+  .divider { border: none; border-top: 1px solid rgba(26,26,24,.1); margin: 32px 0; }
+</style>
+</head>
+<body>
+
+<div class="admin-wrap">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">Brüme</div>
+    <div class="sidebar-sub">Éditions — Admin</div>
+    <button class="btn-new" onclick="newArticle()">+ Nouvel article</button>
+    <div class="sidebar-section">Articles</div>
+    <div class="article-list" id="article-list">
+      <div style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--sand);opacity:.4;padding:12px 0;">Chargement…</div>
+    </div>
+    <div class="sidebar-footer">
+      <a href="editions.html" target="_blank">↗ Voir le site</a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main" id="main">
+    <div class="empty-state">
+      <p>Sélectionnez un article ou créez-en un nouveau.</p>
+    </div>
+  </main>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/cms.js"></script>
+<script>
+let currentId = null
+let articles = []
+
+// ── INIT ──
+;(async () => {
+  if (!checkAuth()) return
+  await loadList()
+})()
+
+async function loadList() {
+  try {
+    articles = await getAllArticles()
+    renderList()
+  } catch(e) {
+    document.getElementById('article-list').innerHTML =
+      '<div style="color:var(--red);font-size:.7rem;padding:8px">Erreur de connexion Airtable</div>'
+  }
+}
+
+function renderList() {
+  const el = document.getElementById('article-list')
+  if (!articles.length) {
+    el.innerHTML = '<div style="font-family:\'Space Mono\',monospace;font-size:.6rem;color:var(--sand);opacity:.4;padding:12px 0">Aucun article</div>'
+    return
+  }
+  el.innerHTML = articles.map(a => `
+    <div class="article-item ${a.id === currentId ? 'active' : ''}" onclick="editArticle('${a.id}')">
+      <div class="article-item-title">${a.titre || 'Sans titre'}</div>
+      <div class="article-item-meta">
+        <span class="article-item-status ${a.publie ? 'published' : 'draft'}"></span>
+        ${a.publie ? 'Publié' : 'Brouillon'} · ${a.date_publication ? new Date(a.date_publication).toLocaleDateString('fr-FR') : '—'}
+      </div>
+    </div>`).join('')
+}
+
+// ── NOUVEAU ARTICLE ──
+function newArticle() {
+  currentId = null
+  renderForm({})
+  document.querySelectorAll('.article-item').forEach(el => el.classList.remove('active'))
+}
+
+// ── ÉDITER ARTICLE ──
+async function editArticle(id) {
+  currentId = id
+  const a = articles.find(x => x.id === id)
+  renderForm(a)
+  renderList()
+}
+
+// ── FORMULAIRE ──
+function renderForm(a) {
+  const isNew = !a.id
+  const url = a.id ? articleUrl(a.id) : ''
+
+  document.getElementById('main').innerHTML = `
+    <div class="main-header">
+      <h1 class="main-title">${isNew ? 'Nouvel article' : 'Modifier l\'article'}</h1>
+      <div class="main-actions">
+        ${!isNew ? `<button class="btn btn-delete" onclick="confirmDelete('${a.id}')">Supprimer</button>` : ''}
+        <button class="btn btn-save" onclick="saveForm(false)">Enregistrer brouillon</button>
+        <button class="btn btn-publish" onclick="saveForm(true)">Publier</button>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Titre *</label>
+        <input id="f-titre" type="text" value="${esc(a.titre)}" placeholder="Le titre de l'article">
+      </div>
+      <div class="form-group">
+        <label>Catégorie</label>
+        <select id="f-categorie">
+          ${['Portrait','Matières','Espace','Papeterie','Cuisine','Sélection'].map(c =>
+            `<option value="${c}" ${a.categorie === c ? 'selected' : ''}>${c}</option>`
+          ).join('')}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Date de publication</label>
+        <input id="f-date" type="date" value="${a.date_publication ? a.date_publication.slice(0,10) : today()}">
+      </div>
+      <div class="form-group">
+        <label>Auteur</label>
+        <input id="f-auteur" type="text" value="${esc(a.auteur) || 'Brüme'}">
+      </div>
+      <div class="form-group">
+        <label>Image principale (URL)</label>
+        <input id="f-image" type="url" value="${esc(a.image_url)}" placeholder="https://..." oninput="previewImg(this.value)">
+        <div id="img-preview">
+          ${a.image_url
+            ? `<img class="preview-img" src="${esc(a.image_url)}" onerror="this.style.display='none'">`
+            : `<div class="preview-img-empty"><span>Aucune image</span></div>`}
+        </div>
+      </div>
+      <div class="form-group full">
+        <label>Chapeau *</label>
+        <textarea id="f-chapeau" rows="3" placeholder="1 à 3 phrases d'accroche affichées sous le titre…">${esc(a.chapeau)}</textarea>
+      </div>
+      <div class="form-group full">
+        <label>Contenu de l'article</label>
+        <textarea id="f-contenu" class="textarea-contenu" placeholder="Écrire ici le contenu de l'article.
+
+Pour un titre de section, commencer la ligne par ## (exemple : ## Mon titre)
+
+Laisser une ligne vide entre chaque paragraphe.">${esc(a.contenu)}</textarea>
+        <span class="field-hint">## pour les titres de section · Laisser une ligne vide entre les paragraphes</span>
+      </div>
+      <div class="form-group full">
+        <label>Produits Hiboutik liés</label>
+        <input id="f-produits" type="text" value="${esc(a.produits_ids)}" placeholder="1042, 887, 1203">
+        <span class="field-hint">Séparer les ID produits Hiboutik par des virgules</span>
+      </div>
+      <div class="form-group full">
+        <label>Description SEO</label>
+        <textarea id="f-seo" rows="2" placeholder="Optionnel — pour Google et les partages (150 caractères max)">${esc(a.seo_description)}</textarea>
+      </div>
+      <div class="form-group full">
+        <div class="checkbox-group">
+          <input type="checkbox" id="f-publie" ${a.publie ? 'checked' : ''}>
+          <label for="f-publie">Article publié et visible sur le site</label>
+        </div>
+      </div>
+    </div>
+
+    ${!isNew ? `
+    <hr class="divider">
+    <div class="share-section">
+      <div class="share-title">Partager sur les réseaux sociaux</div>
+      <div class="share-btns">
+        <button class="btn btn-share-fb" onclick="shareToFacebook(getCurrentArticle(), '${url}')">Partager sur Facebook</button>
+        <button class="btn btn-share-ig" onclick="shareToInstagram(getCurrentArticle(), '${url}')">Copier pour Instagram</button>
+      </div>
+    </div>` : ''}
+  `
+}
+
+// ── SAUVEGARDE ──
+async function saveForm(publish) {
+  const titre = document.getElementById('f-titre').value.trim()
+  if (!titre) { showToast('Le titre est obligatoire', 'error'); return }
+
+  const fields = {
+    titre,
+    categorie:       document.getElementById('f-categorie').value,
+    chapeau:         document.getElementById('f-chapeau').value.trim(),
+    contenu:         document.getElementById('f-contenu').value.trim(),
+    image_url:       document.getElementById('f-image').value.trim(),
+    produits_ids:    document.getElementById('f-produits').value.trim(),
+    auteur:          document.getElementById('f-auteur').value.trim() || 'Brüme',
+    seo_description: document.getElementById('f-seo').value.trim(),
+    date_publication: document.getElementById('f-date').value || today(),
+    publie:          publish !== undefined ? publish : document.getElementById('f-publie').checked,
+  }
+
+  try {
+    const saved = await saveArticle(fields, currentId)
+    if (!currentId) currentId = saved.id
+    showToast(publish ? 'Article publié ✓' : 'Brouillon enregistré ✓', 'success')
+    await loadList()
+    renderList()
+    // Mettre à jour le checkbox
+    if (document.getElementById('f-publie')) {
+      document.getElementById('f-publie').checked = fields.publie
+    }
+  } catch(e) {
+    showToast('Erreur lors de la sauvegarde', 'error')
+    console.error(e)
+  }
+}
+
+// ── SUPPRESSION ──
+async function confirmDelete(id) {
+  if (!confirm('Supprimer cet article définitivement ?')) return
+  try {
+    await deleteArticle(id)
+    currentId = null
+    showToast('Article supprimé', 'success')
+    await loadList()
+    document.getElementById('main').innerHTML = `<div class="empty-state"><p>Article supprimé.</p></div>`
+  } catch(e) {
+    showToast('Erreur lors de la suppression', 'error')
+  }
+}
+
+// ── UTILITAIRES ──
+function getCurrentArticle() {
+  return {
+    titre:   document.getElementById('f-titre')?.value || '',
+    chapeau: document.getElementById('f-chapeau')?.value || '',
+  }
+}
+
+function previewImg(url) {
+  const el = document.getElementById('img-preview')
+  if (!el) return
+  el.innerHTML = url
+    ? `<img class="preview-img" src="${url}" onerror="this.style.display='none'">`
+    : `<div class="preview-img-empty"><span>Aucune image</span></div>`
+}
+
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast')
+  t.textContent = msg
+  t.className = `toast ${type} show`
+  setTimeout(() => t.className = 'toast', 3000)
+}
+
+function esc(str) {
+  if (!str) return ''
+  return String(str).replace(/"/g, '&quot;').replace(/</g, '&lt;')
+}
+
+function today() {
+  return new Date().toISOString().slice(0, 10)
+}
+</script>
+</body>
+</html>
