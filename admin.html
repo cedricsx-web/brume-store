@@ -226,13 +226,15 @@ function renderForm(a) {
         <input id="f-auteur" type="text" value="${esc(a.auteur) || 'Brüme'}">
       </div>
       <div class="form-group">
-        <label>Image principale (URL)</label>
-        <input id="f-image" type="url" value="${esc(a.image_url)}" placeholder="https://..." oninput="previewImg(this.value)">
+        <label>Image principale</label>
+        <input id="f-image-file" type="file" accept="image/*" onchange="handleImageUpload(this)">
+        <input type="hidden" id="f-image" value="${esc(a.image_url)}">
         <div id="img-preview">
           ${a.image_url
             ? `<img class="preview-img" src="${esc(a.image_url)}" onerror="this.style.display='none'">`
             : `<div class="preview-img-empty"><span>Aucune image</span></div>`}
         </div>
+        <span class="field-hint" id="upload-status"></span>
       </div>
       <div class="form-group full">
         <label>Chapeau *</label>
@@ -269,8 +271,7 @@ Laisser une ligne vide entre chaque paragraphe.">${esc(a.contenu)}</textarea>
     <div class="share-section">
       <div class="share-title">Partager sur les réseaux sociaux</div>
       <div class="share-btns">
-        <button class="btn btn-share-fb" onclick="shareToFacebook(getCurrentArticle(), '${url}')">Partager sur Facebook</button>
-        <button class="btn btn-share-ig" onclick="shareToInstagram(getCurrentArticle(), '${url}')">Copier pour Instagram</button>
+        <button class="btn btn-share-fb" onclick="openSharePanel(getCurrentArticle(), '${url}')">Partager l'article</button>
       </div>
     </div>` : ''}
   `
@@ -281,18 +282,22 @@ async function saveForm(publish) {
   const titre = document.getElementById('f-titre').value.trim()
   if (!titre) { showToast('Le titre est obligatoire', 'error'); return }
 
+  const imageUrl = document.getElementById('f-image').value.trim()
+
   const fields = {
     titre,
     categorie:       document.getElementById('f-categorie').value,
     chapeau:         document.getElementById('f-chapeau').value.trim(),
     contenu:         document.getElementById('f-contenu').value.trim(),
-    image_url:       document.getElementById('f-image').value.trim(),
     produits_ids:    document.getElementById('f-produits').value.trim(),
     auteur:          document.getElementById('f-auteur').value.trim() || 'Brüme',
     seo_description: document.getElementById('f-seo').value.trim(),
     date_publication: document.getElementById('f-date').value || today(),
     publie:          publish !== undefined ? publish : document.getElementById('f-publie').checked,
   }
+
+  // Le champ Airtable "image" est un Attachment — il attend un tableau [{ url }]
+  if (imageUrl) fields.image = [{ url: imageUrl }]
 
   try {
     const saved = await saveArticle(fields, currentId)
@@ -327,8 +332,10 @@ async function confirmDelete(id) {
 // ── UTILITAIRES ──
 function getCurrentArticle() {
   return {
-    titre:   document.getElementById('f-titre')?.value || '',
-    chapeau: document.getElementById('f-chapeau')?.value || '',
+    titre:     document.getElementById('f-titre')?.value || '',
+    chapeau:   document.getElementById('f-chapeau')?.value || '',
+    categorie: document.getElementById('f-categorie')?.value || '',
+    image_url: document.getElementById('f-image')?.value || '',
   }
 }
 
@@ -338,6 +345,48 @@ function previewImg(url) {
   el.innerHTML = url
     ? `<img class="preview-img" src="${url}" onerror="this.style.display='none'">`
     : `<div class="preview-img-empty"><span>Aucune image</span></div>`
+}
+
+// Upload via la fonction Vercel /api/upload-image — héberge sur Vercel Blob,
+// aucune clé tierce exposée côté navigateur.
+async function handleImageUpload(input) {
+  const file = input.files[0]
+  if (!file) return
+
+  const status = document.getElementById('upload-status')
+  status.textContent = 'Envoi en cours…'
+
+  try {
+    const base64 = await fileToBase64(file)
+
+    const res = await fetch('/api/upload-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: file.name, base64 }),
+    })
+    const data = await res.json()
+
+    if (data.url) {
+      document.getElementById('f-image').value = data.url
+      previewImg(data.url)
+      status.textContent = 'Image envoyée ✓'
+      setTimeout(() => status.textContent = '', 2000)
+    } else {
+      throw new Error(data.error || 'Échec upload')
+    }
+  } catch (e) {
+    status.textContent = 'Erreur lors de l\'envoi de l\'image'
+    console.error(e)
+  }
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
 }
 
 function showToast(msg, type = 'success') {
