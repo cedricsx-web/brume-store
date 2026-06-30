@@ -2,9 +2,9 @@
 // Brüme CMS — Airtable connector
 // Remplacer les deux constantes ci-dessous avec vos vraies valeurs
 
-const AIRTABLE_TOKEN = 'VOTRE_TOKEN_ICI'
-const AIRTABLE_BASE  = 'VOTRE_BASE_ID_ICI'  // commence par "app"
-const AIRTABLE_TABLE = 'Table%201'           // nom de la table (encodé URL)
+const AIRTABLE_TOKEN = 'pat9cQsJ9Cepn2jQz.2ed2008f9645d35bbe0801459c0fd1e10d1badcdc538d75d31a24240cd4c907c'
+const AIRTABLE_BASE  = 'app82aR6KjAzJiUyF/tbl6zKxbMnWQatYJm/viwFwxd6XLZsmR8sT'  // commence par "app"
+const AIRTABLE_TABLE = 'articles'           // nom de la table (encodé URL)
 const ADMIN_PASSWORD = 'brume2026'           // mot de passe admin Cédric
 
 const API = `https://api.airtable.com/v0/${AIRTABLE_BASE}/${AIRTABLE_TABLE}`
