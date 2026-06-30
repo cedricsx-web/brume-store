@@ -8,6 +8,7 @@ const Store = {
 
   async init() {
     UI.showLoader();
+    this._loadCartFromStorage();
     try {
       const [products, categories, stock] = await Promise.all([
         API.getProducts(),
@@ -21,6 +22,10 @@ const Store = {
       UI.renderCategories(categories);
       UI.renderProducts(this._homeSelection(products, categories), stock);
       UI.setActiveCategory('selection');
+
+      // Hydrate any cart items added from article.html (which only has product IDs)
+      this._hydrateCartFromIds();
+      this.renderCart();
 
       // Show soldes banner only if sale products exist
       const hasSale = products.some(p => p.tag === 'sale');
@@ -139,12 +144,14 @@ const Store = {
     } else {
       this.cart.push({ product, qty: 1 });
     }
+    this._saveCartToStorage();
     UI.animateCartBadge();
     this.renderCart();
   },
 
   removeFromCart(productId) {
     this.cart = this.cart.filter(i => i.product.product_id !== productId);
+    this._saveCartToStorage();
     this.renderCart();
   },
 
@@ -155,8 +162,41 @@ const Store = {
     const newQty = item.qty + delta;
     if (newQty <= 0) { this.removeFromCart(productId); }
     else if (newQty > available) { UI.flashCartItem(productId); }
-    else { item.qty = newQty; this.renderCart(); }
+    else { item.qty = newQty; this._saveCartToStorage(); this.renderCart(); }
   },
+
+  // ── PERSISTANCE PANIER (localStorage) ──────────────
+  // Le panier vit en mémoire avec des objets produit complets.
+  // localStorage ne stocke que { product_id, qty } pour rester léger,
+  // puis on "hydrate" avec les vrais objets produit une fois chargés.
+
+  _saveCartToStorage() {
+    const lightCart = this.cart.map(i => ({ product_id: i.product.product_id, qty: i.qty }));
+    localStorage.setItem('brume_cart', JSON.stringify(lightCart));
+  },
+
+  _loadCartFromStorage() {
+    try {
+      const raw = localStorage.getItem('brume_cart');
+      this._pendingCartIds = raw ? JSON.parse(raw) : [];
+    } catch { this._pendingCartIds = []; }
+  },
+
+  // Called after this.products is loaded — converts { product_id, qty } into full cart items
+  _hydrateCartFromIds() {
+    if (!this._pendingCartIds || !this._pendingCartIds.length) return;
+    this._pendingCartIds.forEach(({ product_id, qty }) => {
+      const product = this.products.find(p => p.product_id === product_id);
+      if (!product) return;
+      const existing = this.cart.find(i => i.product.product_id === product_id);
+      if (existing) existing.qty = qty;
+      else this.cart.push({ product, qty });
+    });
+    this._pendingCartIds = [];
+  },
+
+  // Ajoute un produit au panier localStorage — voir aussi addToLocalCart() dans cms.js
+  // (utilisé depuis article.html qui ne charge pas store.js)
 
   getTotal() {
     return this.cart.reduce((sum, item) => {

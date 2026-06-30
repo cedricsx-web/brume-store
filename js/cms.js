@@ -2,7 +2,7 @@
 // Brüme CMS — version sécurisée
 // La clé Airtable est côté serveur (Vercel). Ce fichier ne contient aucune clé.
 
-const API = '/api/airtable'         // proxy Vercel local
+const CMS_API = '/api/airtable'         // proxy Vercel local
 const ADMIN_PASSWORD = 'brume2026'  // mot de passe admin Cédric — vous pouvez changer
 
 // ─────────────────────────────────────
@@ -18,14 +18,14 @@ async function getArticles() {
   ;['titre','categorie','chapeau','image_url','auteur','date_publication','produits_ids']
     .forEach(f => params.append('fields[]', f))
 
-  const res = await fetch(`${API}?${params}`)
+  const res = await fetch(`${CMS_API}?${params}`)
   const data = await res.json()
   if (!data.records) throw new Error('Réponse Airtable invalide')
   return data.records.map(r => ({ id: r.id, ...r.fields }))
 }
 
 async function getArticle(id) {
-  const res = await fetch(`${API}?id=${id}`)
+  const res = await fetch(`${CMS_API}?id=${id}`)
   const data = await res.json()
   // Fetch par ID : on filtre côté client depuis la liste complète
   const all = await getAllArticlesPublic()
@@ -38,7 +38,7 @@ async function getAllArticlesPublic() {
     'sort[0][field]': 'date_publication',
     'sort[0][direction]': 'desc',
   })
-  const res = await fetch(`${API}?${params}`)
+  const res = await fetch(`${CMS_API}?${params}`)
   const data = await res.json()
   if (!data.records) throw new Error('Réponse Airtable invalide')
   return data.records.map(r => ({ id: r.id, ...r.fields }))
@@ -49,7 +49,7 @@ async function getAllArticles() {
     'sort[0][field]': 'date_publication',
     'sort[0][direction]': 'desc',
   })
-  const res = await fetch(`${API}?${params}`)
+  const res = await fetch(`${CMS_API}?${params}`)
   const data = await res.json()
   if (!data.records) throw new Error('Réponse Airtable invalide')
   return data.records.map(r => ({ id: r.id, ...r.fields }))
@@ -62,7 +62,7 @@ async function getAllArticles() {
 async function saveArticle(fields, id = null) {
   if (id) {
     // Mise à jour
-    const res = await fetch(`${API}?id=${id}`, {
+    const res = await fetch(`${CMS_API}?id=${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fields })
@@ -70,7 +70,7 @@ async function saveArticle(fields, id = null) {
     return res.json()
   } else {
     // Création
-    const res = await fetch(API, {
+    const res = await fetch(CMS_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ records: [{ fields }] })
@@ -81,7 +81,7 @@ async function saveArticle(fields, id = null) {
 }
 
 async function deleteArticle(id) {
-  await fetch(`${API}?id=${id}`, { method: 'DELETE' })
+  await fetch(`${CMS_API}?id=${id}`, { method: 'DELETE' })
 }
 
 // ─────────────────────────────────────
@@ -99,6 +99,30 @@ function shareToInstagram(article, articleUrl) {
     alert('Texte copié ! Ouvrez Instagram et collez-le dans votre publication.')
     window.open('https://www.instagram.com', '_blank')
   })
+}
+
+// ─────────────────────────────────────
+// PANIER PARTAGÉ (localStorage)
+// Utilisé par article.html pour ajouter un produit lié au panier
+// sans rediriger immédiatement vers Hiboutik.
+// index.html (store.js) lit ce même localStorage au chargement.
+// ─────────────────────────────────────
+
+function addToLocalCart(productId, qty = 1) {
+  let cart = []
+  try { cart = JSON.parse(localStorage.getItem('brume_cart') || '[]') } catch {}
+  const existing = cart.find(i => i.product_id === productId)
+  if (existing) existing.qty += qty
+  else cart.push({ product_id: productId, qty })
+  localStorage.setItem('brume_cart', JSON.stringify(cart))
+  return cart.reduce((sum, i) => sum + i.qty, 0)
+}
+
+function getLocalCartCount() {
+  try {
+    const cart = JSON.parse(localStorage.getItem('brume_cart') || '[]')
+    return cart.reduce((sum, i) => sum + i.qty, 0)
+  } catch { return 0 }
 }
 
 // ─────────────────────────────────────
