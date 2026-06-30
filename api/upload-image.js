@@ -29,7 +29,8 @@ export default async function handler(req, res) {
     const blob = await put(`articles/${Date.now()}-${filename}`, buffer, {
       access: 'public',
       contentType,
-      token: process.env.BLOB_READ_WRITE_TOKEN,
+      // Pas de token explicite : le SDK utilise l'authentification automatique (OIDC)
+      // si le store Blob est bien connecté à ce projet Vercel.
     })
 
     res.status(200).json({ url: blob.url })
