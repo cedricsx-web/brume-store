@@ -235,13 +235,13 @@ const UI = {
       const avail = Store.stock[item.product.product_id] ?? 99;
       return `
         <div class="cart-item" data-id="${item.product.product_id}">
-          <div class="cart-item-img">
+          <div class="cart-item-img cart-item-clickable" data-open="${item.product.product_id}" style="cursor:pointer">
             <img src="${item.product.product_image}" alt="${item.product.product_model}"
               onerror="this.style.display='none'" />
           </div>
           <div>
             <p class="cart-item-brand">${item.product.product_brand}</p>
-            <p class="cart-item-name">${item.product.product_model}</p>
+            <p class="cart-item-name cart-item-clickable" data-open="${item.product.product_id}" style="cursor:pointer">${item.product.product_model}</p>
             <p class="cart-item-price">${fmt(price * item.qty)}</p>
           </div>
           <div class="cart-item-qty">
@@ -255,6 +255,10 @@ const UI = {
 
     body.querySelectorAll('.qty-btn').forEach(b => b.addEventListener('click', () => Store.updateQty(parseInt(b.dataset.id), parseInt(b.dataset.delta))));
     body.querySelectorAll('.cart-remove').forEach(b => b.addEventListener('click', () => Store.removeFromCart(parseInt(b.dataset.id))));
+    body.querySelectorAll('.cart-item-clickable').forEach(el => el.addEventListener('click', () => {
+      const p = Store.products.find(x => String(x.product_id) === String(el.dataset.open));
+      if (p) { this.closeCart(); this.openModal(p, Store.stock[p.product_id] ?? 99); }
+    }));
 
     footer.style.display = '';
     document.getElementById('cart-total').textContent = fmt(total);
