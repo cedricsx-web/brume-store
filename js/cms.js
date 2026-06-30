@@ -14,8 +14,10 @@ async function getArticles() {
     filterByFormula: `AND({publie}=1)`,
     'sort[0][field]': 'date_publication',
     'sort[0][direction]': 'desc',
-    'fields[]': ['titre','categorie','chapeau','image_url','auteur','date_publication','produits_ids'],
   })
+  ;['titre','categorie','chapeau','image_url','auteur','date_publication','produits_ids']
+    .forEach(f => params.append('fields[]', f))
+
   const res = await fetch(`${API}?${params}`)
   const data = await res.json()
   if (!data.records) throw new Error('Réponse Airtable invalide')
