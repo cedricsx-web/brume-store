@@ -11,7 +11,7 @@ const ADMIN_PASSWORD = 'brume2026'  // mot de passe admin Cédric — vous pouve
 
 async function getArticles() {
   const params = new URLSearchParams({
-    filterByFormula: `AND({publie}=1)`,
+    filterByFormula: `{publie}=1`,
     'sort[0][field]': 'date_publication',
     'sort[0][direction]': 'desc',
   })
