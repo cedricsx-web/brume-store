@@ -75,7 +75,7 @@ const Store = {
     return ids;
   },
 
-  // Build a curated homepage selection: first + last product of each root category, max 16 total
+  // Build a curated homepage selection: 1 product per root category, max 8 total
   _homeSelection(products, categories) {
     const selected = [];
     const seen = new Set();
@@ -88,7 +88,7 @@ const Store = {
     };
 
     for (const cat of categories) {
-      if (selected.length >= 16) break;
+      if (selected.length >= 8) break;
 
       // Collect all category IDs under this root (including subcategories)
       const ids = this._getAllCategoryIds(categories, cat.id);
@@ -97,12 +97,9 @@ const Store = {
       if (catProducts.length === 0) continue;
 
       addProduct(catProducts[0]);
-      if (catProducts.length > 1) addProduct(catProducts[catProducts.length - 1]);
-
-      if (selected.length >= 16) break;
     }
 
-    return selected.slice(0, 16);
+    return selected.slice(0, 8);
   },
 
   filterBySelection() {
