@@ -347,8 +347,11 @@ function previewImg(url) {
     : `<div class="preview-img-empty"><span>Aucune image</span></div>`
 }
 
-// Upload via la fonction Vercel /api/upload-image — héberge sur Vercel Blob,
-// aucune clé tierce exposée côté navigateur.
+// Upload via imgbb (hébergement gratuit, clé API publique) — renvoie une URL
+// directe stockée comme attachment Airtable. Pas de backend nécessaire.
+// Note : Vercel Blob abandonné après instabilité de configuration OIDC/token.
+const IMGBB_API_KEY = 'VOTRE_CLE_IMGBB_ICI'
+
 async function handleImageUpload(input) {
   const file = input.files[0]
   if (!file) return
@@ -358,21 +361,23 @@ async function handleImageUpload(input) {
 
   try {
     const base64 = await fileToBase64(file)
+    const formData = new FormData()
+    formData.append('image', base64.split(',')[1]) // retire le préfixe data:image/...;base64,
 
-    const res = await fetch('/api/upload-image', {
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filename: file.name, base64 }),
+      body: formData,
     })
     const data = await res.json()
 
-    if (data.url) {
-      document.getElementById('f-image').value = data.url
-      previewImg(data.url)
+    if (data.success) {
+      const url = data.data.url
+      document.getElementById('f-image').value = url
+      previewImg(url)
       status.textContent = 'Image envoyée ✓'
       setTimeout(() => status.textContent = '', 2000)
     } else {
-      throw new Error(data.error || 'Échec upload')
+      throw new Error('Échec upload imgbb')
     }
   } catch (e) {
     status.textContent = 'Erreur lors de l\'envoi de l\'image'
