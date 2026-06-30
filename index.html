@@ -58,7 +58,7 @@
   <div class="header-inner">
     <span class="header-logo">Brüme</span>
     <nav class="nav-left">
-      <a href="#boutique" class="hide-mobile">Collections</a>
+      <a href="editions.html" class="hide-mobile">Histoires</a>
       <a href="#boutique" class="hide-mobile" id="nav-selection">Sélection du mois</a>
       <a href="#about" class="hide-mobile">Notre histoire</a>
     </nav>
@@ -107,6 +107,15 @@
   </div>
   <nav id="category-nav" aria-label="Filtrer par catégorie"></nav>
   <div id="products-grid" role="list"></div>
+</section>
+
+<!-- HISTOIRES (aperçu articles) -->
+<section class="histoires-preview" id="histoires-preview">
+  <div class="section-header">
+    <p class="eyebrow">Brüme — Éditions</p>
+    <h2 class="section-title">Histoires</h2>
+  </div>
+  <div id="histoires-grid" class="histoires-grid"></div>
 </section>
 
 <!-- EDITORIAL -->
@@ -212,6 +221,7 @@
     <div class="footer-col">
       <p class="footer-col-title">Boutique</p>
       <ul>
+        <li><a href="editions.html">Histoires</a></li>
         <li><a href="#boutique" id="mobile-nav-selection">Sélection du mois</a></li>
         <li><a href="#boutique">Décoration</a></li>
         <li><a href="#boutique">Papeterie</a></li>
@@ -255,8 +265,38 @@
 <script src="js/api.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/store.js"></script>
+<script src="js/cms.js"></script>
 <script>
-  document.addEventListener('DOMContentLoaded', () => Store.init());
+  document.addEventListener('DOMContentLoaded', () => {
+    Store.init();
+    loadHistoiresPreview();
+  });
+
+  async function loadHistoiresPreview() {
+    const grid = document.getElementById('histoires-grid');
+    if (!grid) return;
+    try {
+      const articles = await getArticles();
+      const preview = articles.slice(0, 3);
+      if (!preview.length) {
+        document.getElementById('histoires-preview').style.display = 'none';
+        return;
+      }
+      grid.innerHTML = preview.map(a => `
+        <a href="article.html?id=${a.id}" class="histoire-card">
+          <div class="histoire-card-img">
+            <img src="${a.image_url || 'img/editorial.jpg'}" alt="${a.titre}" loading="lazy" onerror="this.src='img/editorial.jpg'">
+          </div>
+          <div class="histoire-card-body">
+            <span class="histoire-card-tag">${a.categorie || ''}</span>
+            <h3 class="histoire-card-title">${a.titre}</h3>
+          </div>
+        </a>`).join('');
+    } catch (e) {
+      document.getElementById('histoires-preview').style.display = 'none';
+      console.error('Histoires preview error:', e);
+    }
+  }
 
   // Newsletter removed — will be re-added when connected to Hiboutik
 </script>

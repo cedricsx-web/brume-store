@@ -88,6 +88,24 @@
   .toast.error { border-left: 3px solid var(--red); }
 
   .divider { border: none; border-top: 1px solid rgba(26,26,24,.1); margin: 32px 0; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    .admin-wrap { grid-template-columns: 1fr; }
+    .sidebar { position: relative; height: auto; max-height: 280px; }
+    .main { padding: 28px 20px; }
+    .main-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+    .main-actions { flex-wrap: wrap; width: 100%; }
+    .main-actions .btn { flex: 1; min-width: 120px; }
+    .form-grid { grid-template-columns: 1fr; gap: 18px; }
+    .share-btns { flex-direction: column; }
+    .share-btns .btn { width: 100%; }
+  }
+  @media (max-width: 480px) {
+    .sidebar { max-height: 220px; padding: 24px 16px; }
+    .main { padding: 20px 14px; }
+    .main-title { font-size: 1.5rem; }
+  }
 </style>
 </head>
 <body>

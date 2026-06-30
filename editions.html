@@ -72,7 +72,14 @@
     .featured { grid-template-columns: 1fr; }
     .featured-img { height: 300px; }
     .featured-body { padding: 32px 24px; }
-    .grid { grid-template-columns: 1fr; }
+    .grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 480px) {
+    .grid { grid-template-columns: 1fr 1fr; gap: 0; }
+    .card-img { height: 140px; }
+    .card-body { padding: 16px 14px 20px; }
+    .card-title { font-size: 1.05rem; }
+    .featured-img { height: 220px; }
   }
 </style>
 </head>
