@@ -186,13 +186,15 @@ const Store = {
   _hydrateCartFromIds() {
     if (!this._pendingCartIds || !this._pendingCartIds.length) return;
     this._pendingCartIds.forEach(({ product_id, qty }) => {
-      const product = this.products.find(p => p.product_id === product_id);
+      // Comparaison en string : localStorage stocke des strings, l'API Hiboutik des nombres
+      const product = this.products.find(p => String(p.product_id) === String(product_id));
       if (!product) return;
-      const existing = this.cart.find(i => i.product.product_id === product_id);
+      const existing = this.cart.find(i => String(i.product.product_id) === String(product_id));
       if (existing) existing.qty = qty;
       else this.cart.push({ product, qty });
     });
     this._pendingCartIds = [];
+    this._saveCartToStorage(); // re-sync localStorage avec les IDs résolus
   },
 
   // Ajoute un produit au panier localStorage — voir aussi addToLocalCart() dans cms.js
