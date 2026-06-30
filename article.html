@@ -76,6 +76,62 @@
   .loading-dot:nth-child(3) { animation-delay: .4s; }
   @keyframes pulse { 0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)} }
 
+  /* ── PRODUCT MODAL (porté depuis index.html pour rester sur la page article) ── */
+  #modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.7); z-index: 399; backdrop-filter: blur(4px);
+  }
+  #modal-overlay.active { display: block; }
+  #product-modal {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%,-50%) scale(.95);
+    width: min(900px, 94vw); max-height: 90vh;
+    background: #161514; border: 1px solid rgba(245,242,237,.1);
+    z-index: 400; display: none; flex-direction: column;
+    overflow: hidden; transition: transform .25s ease, opacity .25s ease; opacity: 0;
+  }
+  #product-modal.open { display: flex; transform: translate(-50%,-50%) scale(1); opacity: 1; }
+  .modal-close {
+    position: absolute; top: 16px; right: 20px; background: none; border: none;
+    color: rgba(245,242,237,.4); font-size: 24px; cursor: pointer; z-index: 2; line-height: 1;
+    transition: color .2s;
+  }
+  .modal-close:hover { color: var(--linen); }
+  .modal-inner { display: grid; grid-template-columns: 1fr 1fr; height: 100%; overflow-y: auto; }
+  .modal-img-wrap { position: relative; aspect-ratio: 1; overflow: hidden; background: #1a1a18; min-height: 300px; }
+  .modal-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+  .modal-info { padding: 48px 40px; display: flex; flex-direction: column; justify-content: center; gap: 16px; overflow-y: auto; }
+  .modal-brand { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .14em; color: var(--sand); text-transform: uppercase; }
+  .modal-name { font-family: 'Cormorant Garamond', serif; font-size: clamp(20px,2.5vw,30px); font-weight: 300; line-height: 1.2; color: var(--linen); }
+  .modal-price { font-family: 'Space Mono', monospace; font-size: 16px; letter-spacing: .05em; color: var(--sand); }
+  .modal-desc { font-size: 13.5px; line-height: 1.75; color: rgba(245,242,237,.55); flex: 1; overflow-y: auto; max-height: 320px; padding-right: 4px; }
+  .modal-desc p { margin-bottom: 10px; }
+  .modal-desc p:last-child { margin-bottom: 0; }
+  .modal-desc ul { list-style: none; padding: 0; margin-bottom: 12px; }
+  .modal-desc ul li { padding-left: 14px; position: relative; margin-bottom: 4px; color: rgba(245,242,237,.55); }
+  .modal-desc ul li::before { content: '·'; position: absolute; left: 0; color: var(--sand); font-size: 16px; line-height: 1.4; }
+  .modal-desc .desc-section { font-family: 'Space Mono', monospace; font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--sand); margin-top: 18px; margin-bottom: 6px !important; }
+  .modal-desc .desc-section:first-child { margin-top: 0; }
+  .modal-desc .desc-empty { font-style: italic; opacity: .3; }
+  .modal-add {
+    width: 100%; padding: 15px; font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: .12em;
+    text-transform: uppercase; background: var(--green); color: var(--linen); border: none; cursor: pointer;
+    display: flex; justify-content: center; align-items: center; transition: opacity .2s;
+  }
+  .modal-add:hover { opacity: .85; }
+  .modal-add:disabled { background: #444; cursor: not-allowed; opacity: 1; }
+  .modal-reassurance {
+    display: flex; align-items: center; gap: 6px; font-family: 'Space Mono', monospace; font-size: 9px;
+    letter-spacing: .1em; color: rgba(245,242,237,.25); text-transform: uppercase;
+  }
+  .reassurance-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--sand); flex-shrink: 0; }
+  @media (max-width: 700px) {
+    .modal-inner { grid-template-columns: 1fr; }
+    .modal-img-wrap { aspect-ratio: 4/3; min-height: 200px; }
+    .modal-info { padding: 28px 24px; }
+    #product-modal { max-height: 95vh; }
+  }
+
   /* ── PANIER (calque coulissant) ── */
   #cart-overlay {
     position: fixed; inset: 0; background: rgba(26,26,24,.5);
@@ -149,6 +205,30 @@
 </head>
 <body>
 
+<!-- PRODUCT MODAL OVERLAY -->
+<div id="modal-overlay" onclick="closeProductModal()"></div>
+
+<!-- PRODUCT MODAL -->
+<div id="product-modal" role="dialog" aria-modal="true">
+  <button class="modal-close" onclick="closeProductModal()" aria-label="Fermer">×</button>
+  <div class="modal-inner">
+    <div class="modal-img-wrap">
+      <img id="modal-img" src="" alt="" />
+    </div>
+    <div class="modal-info">
+      <p id="modal-brand" class="modal-brand"></p>
+      <h2 id="modal-name" class="modal-name"></h2>
+      <p id="modal-price" class="modal-price"></p>
+      <p id="modal-desc" class="modal-desc"></p>
+      <button id="modal-add-btn" class="modal-add">Ajouter au panier</button>
+      <div class="modal-reassurance">
+        <div class="reassurance-dot"></div>
+        Paiement sécurisé · Stripe · Géré par Hiboutik
+      </div>
+    </div>
+  </div>
+</div>
+
 <nav>
   <a href="index.html" class="nav-logo">Brüme</a>
   <div class="nav-links">
@@ -218,7 +298,7 @@
       if (ids.length) {
         const items = ids.map(pid => `
           <div class="related-item" data-pid="${pid}">
-            <a href="index.html?product=${pid}" class="related-item-link" style="text-decoration:none;color:inherit;display:block;">
+            <a href="#" class="related-item-link" style="text-decoration:none;color:inherit;display:block;" onclick="event.preventDefault(); openProductModal('${pid}')">
               <div class="related-item-img">
                 <img src="https://brumeconceptstore.hiboutik.com/myshop/images/?img=big_${pid}-1.jpg" alt="Produit ${pid}" onerror="this.style.display='none'">
               </div>
@@ -278,6 +358,10 @@
 
     window._article = a
 
+    // Ouvre la modale produit si l'URL contient ?produit=ID (lien direct partagé)
+    const productParam = params.get('produit')
+    if (productParam) setTimeout(() => openProductModal(productParam), 300)
+
   } catch(e) {
     document.getElementById('content').innerHTML = `<div style="padding:100px 40px;text-align:center;font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-style:italic;opacity:.5">Article introuvable.</div>`
     console.error(e)
@@ -295,6 +379,127 @@ function addRelatedToCart(productId, btn) {
     btn.classList.remove('added')
   }, 1500)
   updateCartBadge()
+}
+
+// ── MODALE PRODUIT (reste sur la page article, ne redirige plus vers index.html) ──
+
+function fmt(n) {
+  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(n)
+}
+
+const FALLBACK_GRADIENTS = [
+  'linear-gradient(145deg,#E2D9CC,#C8BBA8)', 'linear-gradient(145deg,#CDD5D2,#A9B7B3)',
+  'linear-gradient(145deg,#D9CFBF,#BFB09C)', 'linear-gradient(145deg,#E8E0D5,#D0C5B5)',
+  'linear-gradient(145deg,#CCC4B8,#AFA598)', 'linear-gradient(145deg,#C8D0CC,#A8B5B0)',
+  'linear-gradient(145deg,#D4CCB8,#BEB49E)', 'linear-gradient(145deg,#B8C4B0,#8BA882)',
+]
+function getFallbackGradient(id) {
+  return FALLBACK_GRADIENTS[id % FALLBACK_GRADIENTS.length]
+}
+
+// Convertit une description Hiboutik en texte brut vers un HTML lisible
+// (sections, listes à puces, paragraphes) — même logique que js/ui.js
+function formatDescription(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l)
+  let html = ''
+  let i = 0
+  while (i < lines.length) {
+    const line = lines[i]
+    const nextLine = lines[i + 1] || ''
+    const isHeader = line.length < 60
+      && !line.startsWith('•') && !line.startsWith('-')
+      && (nextLine.startsWith('•') || nextLine.startsWith('-') || nextLine.length > 40)
+      && !line.endsWith('.')
+    if (isHeader) {
+      html += `<p class="desc-section">${line}</p>`
+      i++
+      continue
+    }
+    if (line.startsWith('•') || line.startsWith('-')) {
+      let listItems = ''
+      while (i < lines.length && (lines[i].startsWith('•') || lines[i].startsWith('-'))) {
+        listItems += `<li>${lines[i].replace(/^[•-]\s*/, '')}</li>`
+        i++
+      }
+      html += `<ul>${listItems}</ul>`
+      continue
+    }
+    html += `<p>${line}</p>`
+    i++
+  }
+  return html
+}
+
+let _productsCache = null
+async function _getProductById(productId) {
+  if (!_productsCache) {
+    const res = await fetch('/api/products')
+    _productsCache = await res.json()
+  }
+  return _productsCache.find(p => String(p.product_id) === String(productId))
+}
+
+async function openProductModal(productId) {
+  const p = await _getProductById(productId)
+  if (!p) return
+
+  const price = parseFloat(p.product_price)
+  const sale = p.product_discount_price ? parseFloat(p.product_discount_price) : null
+
+  const img = document.getElementById('modal-img')
+  img.src = `https://brumeconceptstore.hiboutik.com/myshop/images/?img=big_${p.product_id}-1.jpg`
+  img.onerror = function () {
+    this.style.display = 'none'
+    document.querySelector('.modal-img-wrap').style.background = getFallbackGradient(p.product_id)
+  }
+
+  document.getElementById('modal-name').textContent = p.product_model
+  document.getElementById('modal-brand').textContent = p.product_brand || ''
+
+  // Champ corrigé : l'API renvoie products_desc (et non product_description)
+  const rawDesc = p.products_desc || ''
+  const modalDesc = document.getElementById('modal-desc')
+  if (!rawDesc.trim()) {
+    modalDesc.innerHTML = '<p class="desc-empty">Aucune description disponible.</p>'
+  } else if (rawDesc.includes('<')) {
+    modalDesc.innerHTML = rawDesc
+  } else {
+    modalDesc.innerHTML = formatDescription(rawDesc)
+  }
+
+  document.getElementById('modal-price').innerHTML = sale
+    ? `<span style="text-decoration:line-through;opacity:.5;margin-right:8px;">${fmt(price)}</span>${fmt(sale)}`
+    : fmt(price)
+
+  const addBtn = document.getElementById('modal-add-btn')
+  addBtn.disabled = false
+  addBtn.textContent = 'Ajouter au panier'
+  addBtn.onclick = () => {
+    addToLocalCart(p.product_id, 1)
+    addBtn.textContent = '✓ Ajouté !'
+    setTimeout(() => { addBtn.textContent = 'Ajouter au panier' }, 1200)
+    updateCartBadge()
+    setTimeout(() => { closeProductModal(); openCartPanel() }, 300)
+  }
+
+  document.getElementById('product-modal').classList.add('open')
+  document.getElementById('modal-overlay').classList.add('active')
+  document.body.style.overflow = 'hidden'
+
+  // Reflète le produit ouvert dans l'URL sans recharger la page
+  // (lien partageable, retour navigateur cohérent — la page reste celle de l'article)
+  const url = new URL(window.location)
+  url.searchParams.set('produit', p.product_id)
+  history.pushState({}, '', url)
+}
+
+function closeProductModal() {
+  document.getElementById('product-modal').classList.remove('open')
+  document.getElementById('modal-overlay').classList.remove('active')
+  document.body.style.overflow = ''
+  const url = new URL(window.location)
+  url.searchParams.delete('produit')
+  history.pushState({}, '', url)
 }
 
 function updateCartBadge() {

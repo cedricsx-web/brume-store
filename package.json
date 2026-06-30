@@ -2,6 +2,9 @@
   "name": "brume-store",
   "version": "1.0.0",
   "private": true,
+  "scripts": {
+    "build": "node scripts/generate-pages.js"
+  },
   "dependencies": {
     "@vercel/blob": "latest"
   }
