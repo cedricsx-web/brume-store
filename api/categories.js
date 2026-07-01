@@ -48,6 +48,7 @@ export default async function handler(req, res) {
     const tree = buildTree(filtered, 0);
 
     res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
     res.setHeader('Access-Control-Allow-Origin', '*');
     return res.status(200).json(tree);
 
