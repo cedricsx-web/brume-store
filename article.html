@@ -91,6 +91,17 @@
     overflow: hidden; transition: transform .25s ease, opacity .25s ease; opacity: 0;
   }
   #product-modal.open { display: flex; transform: translate(-50%,-50%) scale(1); opacity: 1; }
+  .modal-close {
+    position: absolute; top: 10px; right: 10px;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.65);
+    border: 1.5px solid rgba(255,255,255,0.5);
+    border-radius: 50%;
+    cursor: pointer; z-index: 10; padding: 0;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .modal-close:hover { background: rgba(0,0,0,0.9); border-color: #fff; }
   .modal-inner { display: grid; grid-template-columns: 1fr 1fr; height: 100%; overflow-y: auto; }
   .modal-img-wrap { position: relative; aspect-ratio: 1; overflow: hidden; background: #1a1a18; min-height: 300px; }
   .modal-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
@@ -127,6 +138,7 @@
     .modal-name { font-size: 18px; }
     .modal-add { padding: 12px; }
     .modal-reassurance { display: none; }
+    .modal-close { top: 8px; right: 8px; width: 28px; height: 28px; background: rgba(0,0,0,0.7); border: 1.5px solid rgba(255,255,255,0.6); }
   }
 
   /* ── PANIER (calque coulissant) ── */
@@ -205,13 +217,11 @@
 <!-- PRODUCT MODAL OVERLAY -->
 <div id="modal-overlay" onclick="closeProductModal()"></div>
 
-<!-- CLOSE BUTTON (outside modal to avoid overflow/transform clipping) -->
-<button id="modal-close-btn" onclick="closeProductModal()" aria-label="Fermer" style="display:none;position:fixed;top:12px;right:12px;width:44px;height:44px;align-items:center;justify-content:center;background:#000;border:3px solid #fff;border-radius:50%;cursor:pointer;z-index:500;padding:0;">
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><line x1="4" y1="4" x2="16" y2="16"/><line x1="16" y1="4" x2="4" y2="16"/></svg>
-</button>
-
 <!-- PRODUCT MODAL -->
 <div id="product-modal" role="dialog" aria-modal="true">
+  <button class="modal-close" onclick="closeProductModal()" aria-label="Fermer">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/></svg>
+  </button>
   <div class="modal-inner">
     <div class="modal-img-wrap">
       <img id="modal-img" src="" alt="" />
@@ -485,7 +495,6 @@ async function openProductModal(productId) {
 
   document.getElementById('product-modal').classList.add('open')
   document.getElementById('modal-overlay').classList.add('active')
-  var cb = document.getElementById('modal-close-btn'); if (cb) cb.style.display = 'flex';
   document.body.style.overflow = 'hidden'
 
   // Reflète le produit ouvert dans l'URL sans recharger la page
@@ -498,7 +507,6 @@ async function openProductModal(productId) {
 function closeProductModal() {
   document.getElementById('product-modal').classList.remove('open')
   document.getElementById('modal-overlay').classList.remove('active')
-  var cb = document.getElementById('modal-close-btn'); if (cb) cb.style.display = 'none';
   document.body.style.overflow = ''
   const url = new URL(window.location)
   url.searchParams.delete('produit')
