@@ -442,17 +442,44 @@ function formatDescription(text) {
 }
 
 let _productsCache = null
-async function _getProductById(productId) {
-  if (!_productsCache) {
-    const res = await fetch('/api/products')
-    _productsCache = await res.json()
+let _productsFetching = null
+
+// Pre-fetch products in background so modal opens instantly
+function _prefetchProducts() {
+  if (!_productsFetching) {
+    _productsFetching = fetch('/api/products')
+      .then(r => r.json())
+      .then(data => { _productsCache = data; return data; })
+      .catch(() => null)
   }
-  return _productsCache.find(p => String(p.product_id) === String(productId))
+  return _productsFetching
+}
+// Start pre-fetch as soon as CMS script loads
+_prefetchProducts()
+
+async function _getProductById(productId) {
+  if (!_productsCache) await _prefetchProducts()
+  return _productsCache
+    ? _productsCache.find(p => String(p.product_id) === String(productId))
+    : null
 }
 
 async function openProductModal(productId) {
+  // Show loading state immediately
+  document.getElementById('product-modal').classList.add('open')
+  document.getElementById('modal-overlay').classList.add('active')
+  document.body.style.overflow = 'hidden'
+  document.getElementById('modal-name').textContent = 'Chargement…'
+  document.getElementById('modal-brand').textContent = ''
+  document.getElementById('modal-desc').innerHTML = ''
+  document.getElementById('modal-price').textContent = ''
+  document.getElementById('modal-img').src = ''
+
   const p = await _getProductById(productId)
-  if (!p) return
+  if (!p) {
+    document.getElementById('modal-name').textContent = 'Produit introuvable'
+    return
+  }
 
   const price = parseFloat(p.product_price)
   const sale = p.product_discount_price ? parseFloat(p.product_discount_price) : null
@@ -493,12 +520,7 @@ async function openProductModal(productId) {
     setTimeout(() => { closeProductModal(); openCartPanel() }, 300)
   }
 
-  document.getElementById('product-modal').classList.add('open')
-  document.getElementById('modal-overlay').classList.add('active')
-  document.body.style.overflow = 'hidden'
-
   // Reflète le produit ouvert dans l'URL sans recharger la page
-  // (lien partageable, retour navigateur cohérent — la page reste celle de l'article)
   const url = new URL(window.location)
   url.searchParams.set('produit', p.product_id)
   history.pushState({}, '', url)
