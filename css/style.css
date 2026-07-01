@@ -687,12 +687,17 @@ footer { background: #0c0c0c; border-top: 1px solid var(--light-mist); padding: 
 
 .modal-close {
   position: absolute; top: 16px; right: 20px;
-  background: none; border: none;
-  color: rgba(242,238,231,0.4); font-size: 24px;
-  cursor: pointer; z-index: 2; line-height: 1;
-  transition: color 0.2s;
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(17,16,16,0.55);
+  border: 1px solid rgba(242,238,231,0.25);
+  border-radius: 50%;
+  color: var(--linen); font-size: 22px;
+  cursor: pointer; z-index: 5; line-height: 1;
+  backdrop-filter: blur(3px);
+  transition: background 0.2s, color 0.2s;
 }
-.modal-close:hover { color: var(--linen); }
+.modal-close:hover { background: rgba(17,16,16,0.85); color: var(--linen); }
 
 .modal-inner {
   display: grid;
