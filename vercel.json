@@ -1,6 +1,6 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": ".",
+  "outputDirectory": "public",
   "rewrites": [
     { "source": "/api/products",   "destination": "/api/products" },
     { "source": "/api/categories", "destination": "/api/categories" },
