@@ -18,13 +18,40 @@
 
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
+
+// Polyfill fetch via https natif Node — compatible Node 14, 16, 18, 20, 22
+function nodeFetch(url, options = {}) {
+  return new Promise((resolve, reject) => {
+    const req = https.request(url, {
+      method: options.method || 'GET',
+      headers: options.headers || {},
+    }, (res) => {
+      const chunks = [];
+      res.on('data', c => chunks.push(c));
+      res.on('end', () => {
+        const body = Buffer.concat(chunks).toString('utf8');
+        resolve({
+          ok: res.statusCode >= 200 && res.statusCode < 300,
+          status: res.statusCode,
+          json: async () => JSON.parse(body),
+          text: async () => body,
+        });
+      });
+    });
+    req.on('error', reject);
+    req.end();
+  });
+}
+// Utilise fetch natif si disponible (Node 18+), sinon polyfill
+const fetch = global.fetch || nodeFetch;
 
 const ACCOUNT = process.env.HIBOUTIK_ACCOUNT;
 const USER = process.env.HIBOUTIK_USER;
 const KEY = process.env.HIBOUTIK_API_KEY;
 const SITE_URL = process.env.SITE_URL || 'https://brumeconceptstore.fr';
 
-const OUT_DIR = path.join(__dirname, '..');
+const OUT_DIR = path.join(__dirname, '..', 'public');
 const PRODUCT_DIR = path.join(OUT_DIR, 'produit');
 const CATEGORY_DIR = path.join(OUT_DIR, 'categorie');
 
@@ -345,8 +372,24 @@ async function main() {
   const flatCategories = flattenTree(categoryTree);
   const categoryNameById = Object.fromEntries(flatCategories.map(c => [c.id, c.name]));
 
-  fs.rmSync(PRODUCT_DIR, { recursive: true, force: true });
-  fs.rmSync(CATEGORY_DIR, { recursive: true, force: true });
+  // Copie tous les fichiers statiques existants dans public/ (source de vérité pour Vercel)
+  const ROOT = path.join(__dirname, '..');
+  fs.rmSync(OUT_DIR, { recursive: true, force: true });
+  fs.mkdirSync(OUT_DIR, { recursive: true });
+
+  const SKIP = new Set(['public', 'scripts', 'node_modules', '.git', '.vercel']);
+  function copyDir(src, dest) {
+    fs.mkdirSync(dest, { recursive: true });
+    for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+      if (SKIP.has(entry.name)) continue;
+      const s = path.join(src, entry.name);
+      const d = path.join(dest, entry.name);
+      if (entry.isDirectory()) copyDir(s, d);
+      else fs.copyFileSync(s, d);
+    }
+  }
+  copyDir(ROOT, OUT_DIR);
+
   fs.mkdirSync(PRODUCT_DIR, { recursive: true });
   fs.mkdirSync(CATEGORY_DIR, { recursive: true });
 
@@ -369,7 +412,7 @@ async function main() {
   fs.writeFileSync(path.join(OUT_DIR, 'sitemap.xml'), buildSitemap(categoryFiles, productFiles));
   fs.writeFileSync(path.join(OUT_DIR, 'robots.txt'), buildRobots());
 
-  console.log(`[generate-pages] Terminé : ${productFiles.length} pages produit, ${categoryFiles.length} pages catégorie, sitemap.xml, robots.txt → public-generated/`);
+  console.log(`[generate-pages] Terminé : ${productFiles.length} pages produit, ${categoryFiles.length} pages catégorie, sitemap.xml, robots.txt → public/`);
 }
 
 main().catch(err => {
