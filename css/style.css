@@ -814,10 +814,10 @@ footer { background: #0c0c0c; border-top: 1px solid var(--light-mist); padding: 
     top: 50dvh;
   }
   .modal-close {
-    position: fixed;
-    top: calc(env(safe-area-inset-top, 0px) + 14px);
-    right: 14px;
-    z-index: 401;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 5;
   }
 }
 
