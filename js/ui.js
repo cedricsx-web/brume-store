@@ -179,7 +179,7 @@ const UI = {
     document.getElementById('modal-img-placeholder').style.display = 'none';
     document.getElementById('modal-name').textContent   = p.product_model;
     document.getElementById('modal-brand').textContent  = p.product_brand;
-    const rawDesc = p.product_description || '';
+    const rawDesc = p.products_desc || '';
     const modalDesc = document.getElementById('modal-desc');
     if (!rawDesc.trim()) {
       modalDesc.innerHTML = '<p class="desc-empty">Aucune description disponible.</p>';
