@@ -6,9 +6,46 @@ const Store = {
   activeCategory: null,
   stopStockSync: null,
 
+  // ── CACHE CONFIG ──
+  _CACHE_KEY: 'brume_catalog',
+  _CACHE_TTL: 5 * 60 * 1000, // 5 min — after this, refresh in background
+
+  _saveCache(products, categories) {
+    try {
+      localStorage.setItem(this._CACHE_KEY, JSON.stringify({
+        ts: Date.now(), products, categories
+      }));
+    } catch {}
+  },
+
+  _loadCache() {
+    try {
+      const raw = localStorage.getItem(this._CACHE_KEY);
+      if (!raw) return null;
+      const c = JSON.parse(raw);
+      if (!c.products || !c.categories) return null;
+      return c;
+    } catch { return null; }
+  },
+
   async init() {
     UI.showLoader();
     this._loadCartFromStorage();
+
+    // 1) Try to render from cache immediately
+    const cache = this._loadCache();
+    if (cache) {
+      this.products   = cache.products;
+      this.categories = cache.categories;
+      UI.renderCategories(this.categories);
+      UI.renderProducts(this._homeSelection(this.products, this.categories), this.stock);
+      UI.setActiveCategory('selection');
+      this._hydrateCartFromIds();
+      this.renderCart();
+      UI.hideLoader();
+    }
+
+    // 2) Fetch fresh data (in parallel)
     try {
       const [products, categories, stock] = await Promise.all([
         API.getProducts(),
@@ -18,16 +55,25 @@ const Store = {
       this.products   = products;
       this.categories = categories;
       this.stock      = stock;
+      this._saveCache(products, categories);
 
+      // Re-render with fresh data (instant — data already in memory)
       UI.renderCategories(categories);
-      UI.renderProducts(this._homeSelection(products, categories), stock);
-      UI.setActiveCategory('selection');
+      // Only re-render products if user hasn't navigated away from selection
+      if (this.activeCategory === 'selection' || this.activeCategory === null) {
+        if (this.activeCategory === null) {
+          UI.renderProducts(products, stock);
+        } else {
+          UI.renderProducts(this._homeSelection(products, categories), stock);
+        }
+      } else {
+        this.filterByCategory(this.activeCategory);
+      }
+      UI.setActiveCategory(this.activeCategory ?? 'selection');
 
-      // Hydrate any cart items added from article.html (which only has product IDs)
       this._hydrateCartFromIds();
       this.renderCart();
 
-      // Show soldes banner only if sale products exist
       const hasSale = products.some(p => p.tag === 'sale');
       const banner = document.getElementById('promo-banner');
       const divider = document.getElementById('promo-divider');
@@ -36,7 +82,8 @@ const Store = {
       this.stopStockSync = startStockSync(this.onStockUpdate.bind(this));
     } catch (err) {
       console.error('Store init error:', err);
-      UI.hideLoader();
+      // If we had no cache either, show error
+      if (!cache) UI.showError('Erreur de chargement. Rechargez la page.');
     } finally {
       UI.hideLoader();
     }
