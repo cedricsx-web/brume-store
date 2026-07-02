@@ -810,7 +810,7 @@ footer { background: #0c0c0c; border-top: 1px solid var(--light-mist); padding: 
     grid-template-columns: 1fr;
   }
   .modal-img-wrap {
-    aspect-ratio: 3/4; min-height: 220px; max-height: 55vh; max-height: 55dvh;
+    aspect-ratio: auto; width: 100%; min-height: 180px; max-height: 55vh; max-height: 55dvh;
   }
   /* Button when inside .modal-img-wrap (moved by JS on mobile) */
   .modal-img-wrap .modal-add {
