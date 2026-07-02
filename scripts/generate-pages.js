@@ -348,36 +348,14 @@ function buildRobots() {
 // ── Exécution ──
 
 async function main() {
-  if (!ACCOUNT || !USER || !KEY) {
-    console.warn('[generate-pages] Variables Hiboutik manquantes — génération ignorée (build normal).');
-    return;
-  }
-
-  console.log('[generate-pages] Récupération des produits et catégories Hiboutik...');
-  const [rawProducts, rawCategories] = await Promise.all([fetchAllProducts(), fetchCategories()]);
-
-  const products = rawProducts
-    .filter(p => (p.product_display_www == 1 || p.product_display_www === '1') && p.product_arch !== 1 && p.product_arch !== '1')
-    .map(p => ({
-      product_id: parseInt(p.product_id),
-      product_model: p.product_model,
-      products_desc: p.products_desc,
-      product_price: parseFloat(p.product_price),
-      product_discount_price: parseFloat(p.product_discount_price || '0'),
-      product_brand: p.product_brand,
-      product_category: parseInt(p.product_category) || 0,
-    }));
-
-  const categoryTree = buildTree(rawCategories, 0);
-  const flatCategories = flattenTree(categoryTree);
-  const categoryNameById = Object.fromEntries(flatCategories.map(c => [c.id, c.name]));
-
-  // Copie tous les fichiers statiques existants dans public/ (source de vérité pour Vercel)
+  // ── ÉTAPE 1 : Toujours copier les fichiers statiques vers public/ ──
+  // C'est critique : Vercel sert depuis outputDirectory "public".
+  // Sans cette copie, aucun changement HTML/CSS/JS n'apparaît.
   const ROOT = path.join(__dirname, '..');
   fs.rmSync(OUT_DIR, { recursive: true, force: true });
   fs.mkdirSync(OUT_DIR, { recursive: true });
 
-  const SKIP = new Set(['public', 'scripts', 'node_modules', '.git', '.vercel']);
+  const SKIP = new Set(['public', 'scripts', 'node_modules', '.git', '.vercel', '.gitignore']);
   function copyDir(src, dest) {
     fs.mkdirSync(dest, { recursive: true });
     for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
@@ -389,34 +367,64 @@ async function main() {
     }
   }
   copyDir(ROOT, OUT_DIR);
+  console.log('[generate-pages] Fichiers statiques copiés vers public/.');
 
-  fs.mkdirSync(PRODUCT_DIR, { recursive: true });
-  fs.mkdirSync(CATEGORY_DIR, { recursive: true });
-
-  console.log(`[generate-pages] ${products.length} produits, ${flatCategories.length} catégories.`);
-
-  const productFiles = [];
-  for (const p of products) {
-    const { filename, html } = buildProductPage(p, categoryNameById[p.product_category]);
-    fs.writeFileSync(path.join(PRODUCT_DIR, filename), html);
-    productFiles.push(filename);
+  // ── ÉTAPE 2 : Générer les pages SEO (optionnel — ne bloque pas le déploiement) ──
+  if (!ACCOUNT || !USER || !KEY) {
+    console.warn('[generate-pages] Variables Hiboutik manquantes — pages SEO ignorées.');
+    return;
   }
 
-  const categoryFiles = [];
-  for (const cat of flatCategories) {
-    const { filename, html } = buildCategoryPage(cat, products, categoryTree);
-    fs.writeFileSync(path.join(CATEGORY_DIR, filename), html);
-    categoryFiles.push(filename);
+  try {
+    console.log('[generate-pages] Récupération des produits et catégories Hiboutik...');
+    const [rawProducts, rawCategories] = await Promise.all([fetchAllProducts(), fetchCategories()]);
+
+    const products = rawProducts
+      .filter(p => (p.product_display_www == 1 || p.product_display_www === '1') && p.product_arch !== 1 && p.product_arch !== '1')
+      .map(p => ({
+        product_id: parseInt(p.product_id),
+        product_model: p.product_model,
+        products_desc: p.products_desc,
+        product_price: parseFloat(p.product_price),
+        product_discount_price: parseFloat(p.product_discount_price || '0'),
+        product_brand: p.product_brand,
+        product_category: parseInt(p.product_category) || 0,
+      }));
+
+    const categoryTree = buildTree(rawCategories, 0);
+    const flatCategories = flattenTree(categoryTree);
+    const categoryNameById = Object.fromEntries(flatCategories.map(c => [c.id, c.name]));
+
+    fs.mkdirSync(PRODUCT_DIR, { recursive: true });
+    fs.mkdirSync(CATEGORY_DIR, { recursive: true });
+
+    console.log(`[generate-pages] ${products.length} produits, ${flatCategories.length} catégories.`);
+
+    const productFiles = [];
+    for (const p of products) {
+      const { filename, html } = buildProductPage(p, categoryNameById[p.product_category]);
+      fs.writeFileSync(path.join(PRODUCT_DIR, filename), html);
+      productFiles.push(filename);
+    }
+
+    const categoryFiles = [];
+    for (const cat of flatCategories) {
+      const { filename, html } = buildCategoryPage(cat, products, categoryTree);
+      fs.writeFileSync(path.join(CATEGORY_DIR, filename), html);
+      categoryFiles.push(filename);
+    }
+
+    fs.writeFileSync(path.join(OUT_DIR, 'sitemap.xml'), buildSitemap(categoryFiles, productFiles));
+    fs.writeFileSync(path.join(OUT_DIR, 'robots.txt'), buildRobots());
+
+    console.log(`[generate-pages] Terminé : ${productFiles.length} pages produit, ${categoryFiles.length} pages catégorie, sitemap.xml, robots.txt → public/`);
+  } catch (err) {
+    console.warn('[generate-pages] Pages SEO ignorées (Hiboutik indisponible) :', err.message);
+    // Les fichiers statiques sont déjà copiés — le site fonctionne, juste sans pages SEO fraîches
   }
-
-  fs.writeFileSync(path.join(OUT_DIR, 'sitemap.xml'), buildSitemap(categoryFiles, productFiles));
-  fs.writeFileSync(path.join(OUT_DIR, 'robots.txt'), buildRobots());
-
-  console.log(`[generate-pages] Terminé : ${productFiles.length} pages produit, ${categoryFiles.length} pages catégorie, sitemap.xml, robots.txt → public/`);
 }
 
 main().catch(err => {
-  console.error('[generate-pages] Échec :', err);
-  // Ne bloque pas le déploiement si Hiboutik est temporairement indisponible
+  console.error('[generate-pages] Échec critique :', err);
   process.exit(0);
 });
