@@ -208,12 +208,25 @@ const UI = {
     document.getElementById('product-modal').classList.add('open');
     document.getElementById('modal-overlay').classList.add('active');
     document.body.style.overflow = 'hidden';
+
+    // Mobile: move add button onto image
+    if (window.innerWidth <= 700) {
+      const btn = document.getElementById('modal-add-btn');
+      const imgWrap = document.querySelector('#product-modal .modal-img-wrap');
+      if (btn && imgWrap && btn.parentNode !== imgWrap) imgWrap.appendChild(btn);
+    }
   },
 
   closeModal() {
     document.getElementById('product-modal').classList.remove('open');
     document.getElementById('modal-overlay').classList.remove('active');
     document.body.style.overflow = '';
+
+    // Move add button back to modal-info for desktop
+    const btn = document.getElementById('modal-add-btn');
+    const info = document.querySelector('#product-modal .modal-info');
+    const reassurance = document.querySelector('#product-modal .modal-reassurance');
+    if (btn && info && btn.parentNode !== info) info.insertBefore(btn, reassurance);
   },
 
   /* ── CART ── */
