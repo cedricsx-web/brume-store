@@ -131,12 +131,12 @@
   }
   .reassurance-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--sand); flex-shrink: 0; }
   @media (max-width: 700px) {
+    #product-modal { width: 94vw; max-height: 88vh; max-height: 88dvh; }
     .modal-inner { grid-template-columns: 1fr; }
-    .modal-img-wrap { aspect-ratio: 16/10; min-height: 140px; max-height: 28vh; max-height: 28dvh; }
-    .modal-info { padding: 18px 20px 22px; gap: 10px; }
-    #product-modal { width: 92vw; max-height: 80vh; max-height: 80dvh; }
+    .modal-img-wrap { aspect-ratio: 3/4; min-height: 180px; max-height: 50vh; max-height: 50dvh; }
+    .modal-info { display: flex; flex-direction: column; padding: 12px 20px 18px; gap: 6px; margin-top: -46px; position: relative; z-index: 3; }
+    .modal-add { order: -1; padding: 13px; background: rgba(45,74,62,0.9); backdrop-filter: blur(6px); margin-bottom: 10px; }
     .modal-name { font-size: 18px; }
-    .modal-add { padding: 12px; }
     .modal-reassurance { display: none; }
     .modal-close { top: 8px; right: 8px; width: 28px; height: 28px; background: rgba(0,0,0,0.7); border: 1.5px solid rgba(255,255,255,0.6); }
   }
