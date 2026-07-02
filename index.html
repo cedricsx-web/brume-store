@@ -150,7 +150,7 @@
     </div>
   </div>
 
-  <div class="reviews-track" itemscope itemtype="https://schema.org/LocalBusiness">
+  <div class="reviews-carousel" itemscope itemtype="https://schema.org/LocalBusiness">
     <meta itemprop="name" content="BrüMe Concept Store" />
     <div itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating">
       <meta itemprop="ratingValue" content="5.0" />
@@ -158,65 +158,76 @@
       <meta itemprop="bestRating" content="5" />
     </div>
 
-    <div class="review-card" itemprop="review" itemscope itemtype="https://schema.org/Review">
-      <span class="review-card-stars">★★★★★</span>
-      <meta itemprop="reviewRating" content="5" />
-      <p class="review-card-text" itemprop="reviewBody">Un vrai coup de cœur ! Je trouve toujours de super idées cadeaux : des articles locaux, faits main, à prix justes. Tout est choisi avec soin et amour par Iris. Je recommande vivement.</p>
-      <div class="review-card-author">
-        <div class="review-card-photo-placeholder">C</div>
-        <div>
-          <div class="review-card-name" itemprop="author">Cliente Google</div>
+    <div class="reviews-viewport">
+      <div class="reviews-track" id="reviews-track">
+
+        <div class="review-card" itemprop="review" itemscope itemtype="https://schema.org/Review">
+          <span class="review-card-stars">★★★★★</span>
+          <meta itemprop="reviewRating" content="5" />
+          <p class="review-card-text" itemprop="reviewBody">Un vrai coup de cœur ! Je trouve toujours de super idées cadeaux : des articles locaux, faits main, à prix justes. Tout est choisi avec soin et amour par Iris. Je recommande vivement.</p>
+          <div class="review-card-author">
+            <div class="review-card-photo-placeholder">C</div>
+            <div>
+              <div class="review-card-name" itemprop="author">Cliente Google</div>
+            </div>
+          </div>
         </div>
+
+        <div class="review-card" itemprop="review" itemscope itemtype="https://schema.org/Review">
+          <span class="review-card-stars">★★★★★</span>
+          <meta itemprop="reviewRating" content="5" />
+          <p class="review-card-text" itemprop="reviewBody">Une superbe boutique où l'on se sent bien pour flâner et découvrir des cadeaux originaux, fabriqués main et éco-responsables, pour tous les âges ! Tenue par une femme adorable, on sent qu'elle y met beaucoup de cœur.</p>
+          <div class="review-card-author">
+            <div class="review-card-photo-placeholder">M</div>
+            <div>
+              <div class="review-card-name" itemprop="author">Client Google</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-card" itemprop="review" itemscope itemtype="https://schema.org/Review">
+          <span class="review-card-stars">★★★★★</span>
+          <meta itemprop="reviewRating" content="5" />
+          <p class="review-card-text" itemprop="reviewBody">Un vrai trésor au cœur de Cachan. Les créations sont toutes magnifiques… tout comme la patronne. Une vraie passionnée qui saura vous conseiller et vous faire découvrir de nouvelles pépites.</p>
+          <div class="review-card-author">
+            <div class="review-card-photo-placeholder">A</div>
+            <div>
+              <div class="review-card-name" itemprop="author">Cliente Google</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-card" itemprop="review" itemscope itemtype="https://schema.org/Review">
+          <span class="review-card-stars">★★★★★</span>
+          <meta itemprop="reviewRating" content="5" />
+          <p class="review-card-text" itemprop="reviewBody">Un concept store adorable où l'on découvre mille petites surprises introuvables ailleurs, pour soi, pour les enfants, pour la maison ou pour offrir… Objets poétiques, artisanat local et durable, céramiques, papeterie, thés et bougies aux parfums merveilleux.</p>
+          <div class="review-card-author">
+            <div class="review-card-photo-placeholder">S</div>
+            <div>
+              <div class="review-card-name" itemprop="author">Cliente Google</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-card" itemprop="review" itemscope itemtype="https://schema.org/Review">
+          <span class="review-card-stars">★★★★★</span>
+          <meta itemprop="reviewRating" content="5" />
+          <p class="review-card-text" itemprop="reviewBody">Très jolie boutique avec de superbes produits. Le personnel est adorable. Parfait pour offrir ou se faire plaisir.</p>
+          <div class="review-card-author">
+            <div class="review-card-photo-placeholder">L</div>
+            <div>
+              <div class="review-card-name" itemprop="author">Cliente Google</div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
-    <div class="review-card" itemprop="review" itemscope itemtype="https://schema.org/Review">
-      <span class="review-card-stars">★★★★★</span>
-      <meta itemprop="reviewRating" content="5" />
-      <p class="review-card-text" itemprop="reviewBody">Une superbe boutique où l'on se sent bien pour flâner et découvrir des cadeaux originaux, fabriqués main et éco-responsables, pour tous les âges ! Tenue par une femme adorable, on sent qu'elle y met beaucoup de cœur.</p>
-      <div class="review-card-author">
-        <div class="review-card-photo-placeholder">M</div>
-        <div>
-          <div class="review-card-name" itemprop="author">Client Google</div>
-        </div>
-      </div>
-    </div>
+    <button type="button" class="reviews-nav reviews-nav-prev" id="reviews-prev" aria-label="Avis précédent">‹</button>
+    <button type="button" class="reviews-nav reviews-nav-next" id="reviews-next" aria-label="Avis suivant">›</button>
 
-    <div class="review-card" itemprop="review" itemscope itemtype="https://schema.org/Review">
-      <span class="review-card-stars">★★★★★</span>
-      <meta itemprop="reviewRating" content="5" />
-      <p class="review-card-text" itemprop="reviewBody">Un vrai trésor au cœur de Cachan. Les créations sont toutes magnifiques… tout comme la patronne. Une vraie passionnée qui saura vous conseiller et vous faire découvrir de nouvelles pépites.</p>
-      <div class="review-card-author">
-        <div class="review-card-photo-placeholder">A</div>
-        <div>
-          <div class="review-card-name" itemprop="author">Cliente Google</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="review-card" itemprop="review" itemscope itemtype="https://schema.org/Review">
-      <span class="review-card-stars">★★★★★</span>
-      <meta itemprop="reviewRating" content="5" />
-      <p class="review-card-text" itemprop="reviewBody">Un concept store adorable où l'on découvre mille petites surprises introuvables ailleurs, pour soi, pour les enfants, pour la maison ou pour offrir… Objets poétiques, artisanat local et durable, céramiques, papeterie, thés et bougies aux parfums merveilleux.</p>
-      <div class="review-card-author">
-        <div class="review-card-photo-placeholder">S</div>
-        <div>
-          <div class="review-card-name" itemprop="author">Cliente Google</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="review-card" itemprop="review" itemscope itemtype="https://schema.org/Review">
-      <span class="review-card-stars">★★★★★</span>
-      <meta itemprop="reviewRating" content="5" />
-      <p class="review-card-text" itemprop="reviewBody">Très jolie boutique avec de superbes produits. Le personnel est adorable. Parfait pour offrir ou se faire plaisir.</p>
-      <div class="review-card-author">
-        <div class="review-card-photo-placeholder">L</div>
-        <div>
-          <div class="review-card-name" itemprop="author">Cliente Google</div>
-        </div>
-      </div>
-    </div>
+    <div class="reviews-dots" id="reviews-dots"></div>
   </div>
 
   <div class="reviews-cta">
@@ -355,7 +366,66 @@
   document.addEventListener('DOMContentLoaded', () => {
     Store.init().then(openProductFromUrl);
     loadHistoiresPreview();
+    initReviewsCarousel();
   });
+
+  // Carousel des avis Google — défilement manuel + auto-play, sans dépendance
+  function initReviewsCarousel() {
+    const track = document.getElementById('reviews-track');
+    const dotsWrap = document.getElementById('reviews-dots');
+    const prevBtn = document.getElementById('reviews-prev');
+    const nextBtn = document.getElementById('reviews-next');
+    if (!track) return;
+
+    const slides = Array.from(track.children);
+    let index = 0;
+    let autoTimer = null;
+
+    // Génère les points de navigation
+    slides.forEach((_, i) => {
+      const dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'reviews-dot';
+      dot.setAttribute('aria-label', `Avis ${i + 1}`);
+      dot.addEventListener('click', () => goTo(i));
+      dotsWrap.appendChild(dot);
+    });
+    const dots = Array.from(dotsWrap.children);
+
+    function render() {
+      track.style.transform = `translateX(-${index * 100}%)`;
+      dots.forEach((d, i) => d.classList.toggle('active', i === index));
+    }
+
+    function goTo(i) {
+      index = (i + slides.length) % slides.length;
+      render();
+      restartAuto();
+    }
+
+    function next() { goTo(index + 1); }
+    function prev() { goTo(index - 1); }
+
+    function restartAuto() {
+      clearInterval(autoTimer);
+      autoTimer = setInterval(next, 6000);
+    }
+
+    nextBtn?.addEventListener('click', next);
+    prevBtn?.addEventListener('click', prev);
+
+    // Swipe tactile
+    let touchStartX = 0;
+    track.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+    track.addEventListener('touchend', e => {
+      const delta = e.changedTouches[0].clientX - touchStartX;
+      if (delta > 40) prev();
+      else if (delta < -40) next();
+    }, { passive: true });
+
+    render();
+    restartAuto();
+  }
 
   // Ouvre la modale d'un produit si l'URL contient ?product=ID
   // (utilisé par les liens produit depuis les articles et le panier)
