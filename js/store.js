@@ -61,15 +61,12 @@ const Store = {
       UI.renderCategories(categories);
       // Only re-render products if user hasn't navigated away from selection
       if (this.activeCategory === 'selection' || this.activeCategory === null) {
-        if (this.activeCategory === null) {
-          UI.renderProducts(products, stock);
-        } else {
-          UI.renderProducts(this._homeSelection(products, categories), stock);
-        }
+        UI.renderProducts(this._homeSelection(products, categories), stock);
+        this.activeCategory = 'selection';
       } else {
         this.filterByCategory(this.activeCategory);
       }
-      UI.setActiveCategory(this.activeCategory ?? 'selection');
+      UI.setActiveCategory(this.activeCategory);
 
       this._hydrateCartFromIds();
       this.renderCart();
