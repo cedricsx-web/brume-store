@@ -810,22 +810,22 @@ footer { background: #0c0c0c; border-top: 1px solid var(--light-mist); padding: 
     grid-template-columns: 1fr;
   }
   .modal-img-wrap {
-    aspect-ratio: 3/4; min-height: 180px; max-height: 50vh; max-height: 50dvh;
+    aspect-ratio: 3/4; min-height: 220px; max-height: 55vh; max-height: 55dvh;
+  }
+  /* Button when inside .modal-img-wrap (moved by JS on mobile) */
+  .modal-img-wrap .modal-add {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    z-index: 5;
+    width: 100%;
+    padding: 14px;
+    background: rgba(45,74,62,0.88);
+    backdrop-filter: blur(6px);
+    border-radius: 0;
   }
   .modal-info {
-    display: flex; flex-direction: column;
-    padding: 12px 20px 18px;
+    padding: 14px 20px 18px;
     gap: 6px;
-    margin-top: -46px;
-    position: relative;
-    z-index: 3;
-  }
-  .modal-add {
-    order: -1;
-    padding: 13px;
-    background: rgba(45,74,62,0.9);
-    backdrop-filter: blur(6px);
-    margin-bottom: 10px;
   }
   .modal-name { font-size: 18px; }
   .modal-reassurance { display: none; }
