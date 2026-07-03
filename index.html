@@ -547,10 +547,12 @@
 <script>
 // ─────────────────────────────────────
 // MODAL HORAIRES — affiche les horaires jour par jour pour un mois donné
-// Source : table Airtable "horaires" via getHoraires() (js/cms.js)
+// Source : table Airtable "horaires" via getHorairesWithFallback() (js/cms.js)
+// Si le mois demandé n'a pas été renseigné, on recule automatiquement au
+// dernier mois disponible plutôt que d'afficher un message vide.
 // ─────────────────────────────────────
 let hoursModalMonth = new Date(); // mois actuellement affiché dans le modal
-let hoursCache = {}; // cache mémoire { "AAAA-MM": {jours:[...]} | null }
+let hoursCache = {}; // cache mémoire { "AAAA-MM": {data, moisAffiche, isFallback} }
 
 const HOURS_MONTH_LABELS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 
@@ -577,6 +579,14 @@ function hoursShiftMonth(delta) {
   renderHoursModal();
 }
 
+// Récupère (avec repli mois précédent) et met en cache le résultat pour la clé demandée.
+async function getHoursForMonth(key) {
+  if (!(key in hoursCache)) {
+    hoursCache[key] = await getHorairesWithFallback(key);
+  }
+  return hoursCache[key];
+}
+
 async function renderHoursModal() {
   const key = hoursMonthKey(hoursModalMonth);
   document.getElementById('hours-month-label').textContent =
@@ -586,29 +596,40 @@ async function renderHoursModal() {
   listEl.innerHTML = '<div class="hours-loading">Chargement des horaires…</div>';
 
   try {
-    if (!(key in hoursCache)) {
-      hoursCache[key] = await getHoraires(key);
-    }
-    const data = hoursCache[key];
+    const result = await getHoursForMonth(key);
 
-    if (!data) {
-      listEl.innerHTML = '<div class="hours-empty">Les horaires de ce mois n\'ont pas encore été renseignés.<br>Contactez-nous à <a href="mailto:brume.news@gmail.com">brume.news@gmail.com</a>.</div>';
+    if (!result.data) {
+      listEl.innerHTML = '<div class="hours-empty">Les horaires n\'ont pas encore été renseignés.<br>Contactez-nous à <a href="mailto:brume.news@gmail.com">brume.news@gmail.com</a>.</div>';
       return;
     }
 
     const todayKey = hoursMonthKey(new Date());
     const todayDow = (new Date().getDay() + 6) % 7; // 0 = lundi
+    // "Aujourd'hui" ne s'affiche que si le mois consulté est bien le mois en cours
+    // (que les horaires viennent de ce mois ou d'un repli sur le mois précédent).
+    const showTodayBadge = key === todayKey;
 
     listEl.innerHTML = JOURS_SEMAINE.map((j, i) => {
-      const value = (data.jours[i] || '').trim();
-      const isClosed = !value || /ferm/i.test(value);
-      const isToday = key === todayKey && i === todayDow;
+      const rawValue = (result.data.jours[i] || '').trim();
+      const slots = parseDaySlots(rawValue);
+      const isClosed = slots.length === 0;
+      const isToday = showTodayBadge && i === todayDow;
+      const timeHtml = isClosed
+        ? 'Fermé'
+        : slots.map(s => `<span class="hours-slot">${esc(s)}</span>`).join('');
       return `
         <div class="hours-row ${isToday ? 'is-today' : ''}">
           <span class="hours-day">${JOURS_LABELS[j]}${isToday ? ' <em>· aujourd\'hui</em>' : ''}</span>
-          <span class="hours-time ${isClosed ? 'is-closed' : ''}">${isClosed ? 'Fermé' : esc(value)}</span>
+          <span class="hours-time ${isClosed ? 'is-closed' : ''}">${timeHtml}</span>
         </div>`;
     }).join('');
+
+    // Note discrète si on affiche les horaires d'un mois de repli (mois demandé non renseigné)
+    const noteEl = document.querySelector('.hours-note');
+    const fallbackNote = result.isFallback
+      ? `<span class="hours-fallback-note">Horaires de ${HOURS_MONTH_LABELS[parseInt(result.moisAffiche.split('-')[1], 10) - 1]} affichés — ${HOURS_MONTH_LABELS[hoursModalMonth.getMonth()]} n'a pas encore été mis à jour.</span><br>`
+      : '';
+    noteEl.innerHTML = fallbackNote + '2 pl. Eustache Deschamps, 94230 Cachan';
   } catch (e) {
     console.error(e);
     listEl.innerHTML = '<div class="hours-empty">Impossible de charger les horaires pour le moment.</div>';
@@ -621,19 +642,21 @@ function esc(str) {
 }
 
 // Met à jour le résumé affiché dans le bandeau "store-strip" avec les horaires
-// d'aujourd'hui (mois courant), sans attendre l'ouverture du modal.
+// d'aujourd'hui (mois courant, avec repli sur le mois précédent si besoin).
 async function updateStoreStripHours() {
   const el = document.getElementById('store-hours-value');
   if (!el) return;
   try {
     const key = hoursMonthKey(new Date());
-    if (!(key in hoursCache)) hoursCache[key] = await getHoraires(key);
-    const data = hoursCache[key];
-    if (!data) return; // garde le texte par défaut "Voir les horaires du mois →"
+    const result = await getHoursForMonth(key);
+    if (!result.data) return; // garde le texte par défaut "Voir les horaires du mois →"
     const todayDow = (new Date().getDay() + 6) % 7;
-    const value = (data.jours[todayDow] || '').trim();
-    const isClosed = !value || /ferm/i.test(value);
-    el.textContent = isClosed ? "Fermé aujourd'hui" : `Aujourd'hui · ${value}`;
+    const slots = parseDaySlots((result.data.jours[todayDow] || '').trim());
+    if (!slots.length) {
+      el.textContent = "Fermé aujourd'hui";
+    } else {
+      el.textContent = `Aujourd'hui · ${slots.join(' · ')}`;
+    }
   } catch (e) {
     // silencieux — le texte par défaut reste affiché
   }

@@ -47,13 +47,18 @@
   .horaires-item-title { font-size: .88rem; color: var(--linen); text-transform: capitalize; }
   .horaires-item-meta { font-family: 'Space Mono', monospace; font-size: .56rem; color: var(--sand); opacity: .6; margin-top: 4px; }
 
-  .day-row { display: grid; grid-template-columns: 140px 1fr auto; gap: 16px; align-items: center; padding: 14px 0; border-bottom: 1px solid rgba(26,26,24,.08); }
+  .day-row { padding: 16px 0; border-bottom: 1px solid rgba(26,26,24,.08); }
   .day-row:last-child { border-bottom: none; }
-  .day-row-label { font-family: 'DM Sans', sans-serif; font-size: .95rem; color: var(--black); }
-  .day-row input[type=text] { margin: 0; }
+  .day-row-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .day-row-label { font-family: 'DM Sans', sans-serif; font-size: .95rem; color: var(--black); font-weight: 400; }
   .day-row-closed { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
   .day-row-closed label { font-size: .68rem; text-transform: none; letter-spacing: 0; opacity: .7; cursor: pointer; }
   .day-row-closed input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--red); }
+  .day-row-slots { display: flex; flex-direction: column; gap: 8px; }
+  .day-row-slots input[type=text] { margin: 0; }
+  .btn-slot2-toggle, .btn-slot2-remove { align-self: flex-start; background: none; border: none; font-family: 'Space Mono', monospace; font-size: .6rem; letter-spacing: .06em; text-transform: uppercase; color: var(--green); opacity: .7; cursor: pointer; padding: 4px 0; transition: opacity .2s; }
+  .btn-slot2-toggle:hover, .btn-slot2-remove:hover { opacity: 1; }
+  .btn-slot2-remove { color: var(--red); }
   .horaires-card { background: var(--linen); border: 1px solid rgba(26,26,24,.1); padding: 8px 28px; margin-top: 8px; }
   .month-picker-row { display: flex; align-items: flex-end; gap: 16px; margin-bottom: 24px; }
   .month-picker-row .form-group { flex: 0 0 220px; }
@@ -124,7 +129,8 @@
     .form-grid { grid-template-columns: 1fr; gap: 18px; }
     .share-btns { flex-direction: column; }
     .share-btns .btn { width: 100%; }
-    .day-row { grid-template-columns: 1fr; gap: 8px; padding: 14px 0; }
+    .day-row { padding: 14px 0; }
+    .day-row-top { flex-wrap: wrap; gap: 8px; }
     .horaires-card { padding: 8px 18px; }
     .month-picker-row { flex-direction: column; align-items: stretch; }
   }
@@ -480,13 +486,26 @@ function renderHorairesForm(h) {
       ${JOURS_SEMAINE.map((j, i) => {
         const value = h.jours[i] || ''
         const isClosed = !value || /ferm/i.test(value)
+        const slots = parseDaySlots(value)
+        const slot1 = slots[0] || ''
+        const slot2 = slots[1] || ''
+        const hasSecondSlot = !!slot2
         return `
-        <div class="day-row">
-          <span class="day-row-label">${JOURS_LABELS[j]}</span>
-          <input type="text" id="h-day-${j}" value="${esc(isClosed ? '' : value)}" placeholder="ex : 11h – 19h" ${isClosed ? 'disabled' : ''}>
-          <div class="day-row-closed">
-            <input type="checkbox" id="h-closed-${j}" ${isClosed ? 'checked' : ''} onchange="toggleDayClosed('${j}')">
-            <label for="h-closed-${j}">Fermé</label>
+        <div class="day-row" id="day-row-${j}">
+          <div class="day-row-top">
+            <span class="day-row-label">${JOURS_LABELS[j]}</span>
+            <div class="day-row-closed">
+              <input type="checkbox" id="h-closed-${j}" ${isClosed ? 'checked' : ''} onchange="toggleDayClosed('${j}')">
+              <label for="h-closed-${j}">Fermé</label>
+            </div>
+          </div>
+          <div class="day-row-slots" id="day-slots-${j}" style="${isClosed ? 'display:none;' : ''}">
+            <input type="text" id="h-day-${j}-1" value="${esc(slot1)}" placeholder="ex : 11h – 19h" ${isClosed ? 'disabled' : ''}>
+            <div id="day-slot2-${j}" style="${hasSecondSlot ? '' : 'display:none;'}">
+              <input type="text" id="h-day-${j}-2" value="${esc(slot2)}" placeholder="ex : 14h – 19h" ${isClosed ? 'disabled' : ''}>
+            </div>
+            <button type="button" class="btn-slot2-toggle" id="btn-slot2-${j}" style="${hasSecondSlot ? 'display:none;' : ''}" onclick="addSecondSlot('${j}')">+ Coupure méridienne (2ᵉ créneau)</button>
+            <button type="button" class="btn-slot2-remove" id="btn-slot2-remove-${j}" style="${hasSecondSlot ? '' : 'display:none;'}" onclick="removeSecondSlot('${j}')">Retirer le 2ᵉ créneau</button>
           </div>
         </div>`
       }).join('')}
@@ -496,9 +515,29 @@ function renderHorairesForm(h) {
 
 function toggleDayClosed(j) {
   const checkbox = document.getElementById(`h-closed-${j}`)
-  const input = document.getElementById(`h-day-${j}`)
-  input.disabled = checkbox.checked
-  if (checkbox.checked) input.value = ''
+  const closed = checkbox.checked
+  document.getElementById(`day-slots-${j}`).style.display = closed ? 'none' : ''
+  document.getElementById(`h-day-${j}-1`).disabled = closed
+  const slot2Input = document.getElementById(`h-day-${j}-2`)
+  if (slot2Input) slot2Input.disabled = closed
+  if (closed) {
+    document.getElementById(`h-day-${j}-1`).value = ''
+    if (slot2Input) slot2Input.value = ''
+  }
+}
+
+function addSecondSlot(j) {
+  document.getElementById(`day-slot2-${j}`).style.display = ''
+  document.getElementById(`btn-slot2-${j}`).style.display = 'none'
+  document.getElementById(`btn-slot2-remove-${j}`).style.display = ''
+  document.getElementById(`h-day-${j}-2`).focus()
+}
+
+function removeSecondSlot(j) {
+  document.getElementById(`h-day-${j}-2`).value = ''
+  document.getElementById(`day-slot2-${j}`).style.display = 'none'
+  document.getElementById(`btn-slot2-${j}`).style.display = ''
+  document.getElementById(`btn-slot2-remove-${j}`).style.display = 'none'
 }
 
 // ── SAUVEGARDE ──
@@ -508,7 +547,12 @@ async function saveHorairesForm() {
 
   const joursValues = JOURS_SEMAINE.map(j => {
     const closed = document.getElementById(`h-closed-${j}`).checked
-    return closed ? '' : document.getElementById(`h-day-${j}`).value.trim()
+    if (closed) return ''
+    const slot1 = document.getElementById(`h-day-${j}-1`).value.trim()
+    const slot2Input = document.getElementById(`h-day-${j}-2`)
+    const slot2 = (slot2Input && document.getElementById(`day-slot2-${j}`).style.display !== 'none')
+      ? slot2Input.value.trim() : ''
+    return formatDaySlots(slot1, slot2)
   })
 
   // Empêcher les doublons : si un autre enregistrement existe déjà pour ce mois
