@@ -1016,34 +1016,12 @@ footer { background: #0c0c0c; border-top: 1px solid var(--light-mist); padding: 
   margin-bottom: 22px;
 }
 
-.hours-month-nav {
+.hours-list {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 4px;
-  margin-bottom: 12px;
+  flex-direction: column;
+  padding-top: 10px;
   border-top: 1px solid rgba(242,238,231,0.1);
-  border-bottom: 1px solid rgba(242,238,231,0.1);
 }
-.hours-month-nav button {
-  background: none;
-  border: none;
-  color: var(--sand);
-  font-size: 16px;
-  cursor: pointer;
-  padding: 6px 10px;
-  transition: opacity 0.2s;
-}
-.hours-month-nav button:hover { opacity: 0.6; }
-#hours-month-label {
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--linen);
-}
-
-.hours-list { display: flex; flex-direction: column; }
 
 .hours-row {
   display: flex;
