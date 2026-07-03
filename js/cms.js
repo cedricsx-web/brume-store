@@ -67,6 +67,74 @@ async function getAllArticles() {
 }
 
 // ─────────────────────────────────────
+// HORAIRES D'OUVERTURE
+// Table Airtable "horaires" — une ligne par mois (champ "mois" = "AAAA-MM")
+// avec un champ texte par jour : lun, mar, mer, jeu, ven, sam, dim
+// (ex : "11h – 19h" ou vide/"Fermé" pour un jour non ouvert)
+// ─────────────────────────────────────
+
+const HORAIRES_TABLE = 'horaires'
+const JOURS_SEMAINE = ['lun', 'mar', 'mer', 'jeu', 'ven', 'sam', 'dim']
+const JOURS_LABELS = {
+  lun: 'Lundi', mar: 'Mardi', mer: 'Mercredi', jeu: 'Jeudi',
+  ven: 'Vendredi', sam: 'Samedi', dim: 'Dimanche'
+}
+
+// Récupère les horaires d'un mois donné ("AAAA-MM"). Renvoie null si aucune
+// entrée n'existe encore pour ce mois (le modal doit alors afficher un message).
+async function getHoraires(mois) {
+  const params = new URLSearchParams({
+    table: HORAIRES_TABLE,
+    filterByFormula: `{mois}="${mois}"`,
+  })
+  const res = await fetch(`${CMS_API}?${params}`)
+  const data = await res.json()
+  if (!data.records) throw new Error('Réponse Airtable invalide')
+  if (!data.records.length) return null
+  const r = data.records[0]
+  return { id: r.id, mois: r.fields.mois, jours: JOURS_SEMAINE.map(j => r.fields[j] || '') }
+}
+
+// Renvoie toutes les entrées horaires (pour la liste admin), triées par mois décroissant.
+async function getAllHoraires() {
+  const params = new URLSearchParams({ table: HORAIRES_TABLE })
+  const res = await fetch(`${CMS_API}?${params}`)
+  const data = await res.json()
+  if (!data.records) throw new Error('Réponse Airtable invalide')
+  return data.records
+    .map(r => ({ id: r.id, mois: r.fields.mois, jours: JOURS_SEMAINE.map(j => r.fields[j] || '') }))
+    .sort((a, b) => (b.mois || '').localeCompare(a.mois || ''))
+}
+
+// Crée ou met à jour les horaires d'un mois. `joursValues` est un tableau de
+// 7 chaînes (lun→dim), dans le même ordre que JOURS_SEMAINE.
+async function saveHoraires(mois, joursValues, id = null) {
+  const fields = { mois }
+  JOURS_SEMAINE.forEach((j, i) => { fields[j] = joursValues[i] || '' })
+
+  if (id) {
+    const res = await fetch(`${CMS_API}?table=${HORAIRES_TABLE}&id=${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields })
+    })
+    return res.json()
+  } else {
+    const res = await fetch(`${CMS_API}?table=${HORAIRES_TABLE}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ records: [{ fields }] })
+    })
+    const data = await res.json()
+    return data.records?.[0]
+  }
+}
+
+async function deleteHoraires(id) {
+  await fetch(`${CMS_API}?table=${HORAIRES_TABLE}&id=${id}`, { method: 'DELETE' })
+}
+
+// ─────────────────────────────────────
 // ÉCRITURE (admin uniquement)
 // ─────────────────────────────────────
 
