@@ -70,7 +70,11 @@ async function getAllArticles() {
 // HORAIRES D'OUVERTURE
 // Table Airtable "horaires" — une ligne par mois (champ "mois" = "AAAA-MM")
 // avec un champ texte par jour : lun, mar, mer, jeu, ven, sam, dim
-// (ex : "11h – 19h" ou vide/"Fermé" pour un jour non ouvert)
+// Chaque champ jour peut contenir :
+//   - vide ou "Fermé"                        → jour fermé
+//   - une plage : "11h – 19h"                → ouvert en continu
+//   - deux plages séparées par une virgule :
+//     "9h30 – 12h30, 14h – 19h"              → fermeture le midi
 // ─────────────────────────────────────
 
 const HORAIRES_TABLE = 'horaires'
@@ -93,6 +97,32 @@ async function getHoraires(mois) {
   if (!data.records.length) return null
   const r = data.records[0]
   return { id: r.id, mois: r.fields.mois, jours: JOURS_SEMAINE.map(j => r.fields[j] || '') }
+}
+
+// Décale une clé "AAAA-MM" de `delta` mois (delta négatif = mois précédents).
+function shiftMonthKey(mois, delta) {
+  const [y, m] = mois.split('-').map(Number)
+  const d = new Date(y, m - 1 + delta, 1)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
+
+// Récupère les horaires d'un mois donné, et si ce mois n'a pas été renseigné,
+// recule mois par mois (jusqu'à `maxLookback` mois en arrière) jusqu'à trouver
+// la dernière entrée disponible. Ainsi, si le mois en cours n'a pas encore été
+// mis à jour, on affiche automatiquement les horaires du mois précédent plutôt
+// qu'un message vide.
+// Renvoie { data, moisAffiche, moisDemande, isFallback } — data est null si
+// aucun mois des `maxLookback` derniers n'a d'horaires renseignés.
+async function getHorairesWithFallback(moisDemande, maxLookback = 6) {
+  let cle = moisDemande
+  for (let i = 0; i <= maxLookback; i++) {
+    const data = await getHoraires(cle)
+    if (data) {
+      return { data, moisAffiche: cle, moisDemande, isFallback: cle !== moisDemande }
+    }
+    cle = shiftMonthKey(cle, -1)
+  }
+  return { data: null, moisAffiche: null, moisDemande, isFallback: false }
 }
 
 // Renvoie toutes les entrées horaires (pour la liste admin), triées par mois décroissant.
@@ -132,6 +162,18 @@ async function saveHoraires(mois, joursValues, id = null) {
 
 async function deleteHoraires(id) {
   await fetch(`${CMS_API}?table=${HORAIRES_TABLE}&id=${id}`, { method: 'DELETE' })
+}
+
+// Découpe la valeur brute d'un jour ("9h30 – 12h30, 14h – 19h") en un tableau
+// de 1 ou 2 plages nettoyées. Renvoie un tableau vide si le jour est fermé.
+function parseDaySlots(value) {
+  if (!value) return []
+  return value.split(',').map(s => s.trim()).filter(Boolean)
+}
+
+// Recombine 1 ou 2 plages en la chaîne stockée dans Airtable.
+function formatDaySlots(slot1, slot2) {
+  return [slot1, slot2].map(s => (s || '').trim()).filter(Boolean).join(', ')
 }
 
 // ─────────────────────────────────────
