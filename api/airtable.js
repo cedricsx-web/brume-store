@@ -1,7 +1,13 @@
 // api/airtable.js
 // Proxy sécurisé — la clé Airtable reste côté serveur, jamais exposée au navigateur
+// Générique : sert n'importe quelle table de la base via ?table=nom (défaut "articles")
+// pour éviter de multiplier les fonctions serverless (limite 12 sur le plan Hobby).
 
-const BASE_URL = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE}/articles`
+const ALLOWED_TABLES = new Set(['articles', 'horaires'])
+
+function tableBaseUrl(table) {
+  return `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE}/${table}`
+}
 
 export default async function handler(req, res) {
   // CORS — autoriser uniquement votre domaine
@@ -14,6 +20,10 @@ export default async function handler(req, res) {
     return
   }
 
+  const requestedTable = req.query.table
+  const table = ALLOWED_TABLES.has(requestedTable) ? requestedTable : 'articles'
+  const BASE_URL = tableBaseUrl(table)
+
   const headers = {
     'Authorization': `Bearer ${process.env.AIRTABLE_TOKEN}`,
     'Content-Type': 'application/json'
@@ -25,8 +35,14 @@ export default async function handler(req, res) {
 
     if (req.method === 'GET') {
       // Transférer la query string brute (évite que Vercel déforme fields[] répétés)
+      // en retirant seulement le paramètre "table" utilisé par ce proxy.
       const rawQuery = req.url.split('?')[1]
-      if (rawQuery) url += `?${rawQuery}`
+      if (rawQuery) {
+        const params = new URLSearchParams(rawQuery)
+        params.delete('table')
+        const cleaned = params.toString()
+        if (cleaned) url += `?${cleaned}`
+      }
 
     } else if (req.method === 'POST') {
       options = { method: 'POST', headers, body: JSON.stringify(req.body) }
