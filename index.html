@@ -65,7 +65,7 @@
   </button>
   <div class="hours-modal-inner">
     <p class="hours-eyebrow">Boutique · Cachan</p>
-    <h2 id="hours-modal-title" class="hours-title">Horaires d'ouverture</h2>
+    <h2 id="hours-modal-title" class="hours-title">Horaires d'ouverture<span id="hours-title-month"></span></h2>
     <div id="hours-list" class="hours-list">
       <div class="hours-loading">Chargement des horaires…</div>
     </div>
@@ -578,6 +578,10 @@ async function getHoursForMonth(key) {
 
 async function renderHoursModal() {
   const key = hoursMonthKey(new Date());
+
+  // Le titre affiche toujours le mois en cours réel — même si les horaires
+  // affichés proviennent d'un repli sur le mois précédent (non renseigné).
+  document.getElementById('hours-title-month').textContent = ` — ${HOURS_MONTH_LABELS[new Date().getMonth()]}`;
 
   const listEl = document.getElementById('hours-list');
   listEl.innerHTML = '<div class="hours-loading">Chargement des horaires…</div>';
