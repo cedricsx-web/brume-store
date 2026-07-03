@@ -1047,7 +1047,7 @@ footer { background: #0c0c0c; border-top: 1px solid var(--light-mist); padding: 
 
 .hours-row {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
   padding: 11px 4px;
   border-bottom: 1px solid rgba(242,238,231,0.06);
@@ -1079,11 +1079,17 @@ footer { background: #0c0c0c; border-top: 1px solid var(--light-mist); padding: 
   font-size: 12.5px;
   letter-spacing: 0.02em;
   color: rgba(242,238,231,0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  text-align: right;
 }
 .hours-time.is-closed {
   color: rgba(242,238,231,0.35);
   font-style: italic;
 }
+.hours-slot { white-space: nowrap; }
 
 .hours-loading, .hours-empty {
   font-family: var(--sans);
@@ -1102,6 +1108,14 @@ footer { background: #0c0c0c; border-top: 1px solid var(--light-mist); padding: 
   letter-spacing: 0.04em;
   color: rgba(242,238,231,0.4);
   text-align: center;
+}
+.hours-fallback-note {
+  display: block;
+  color: var(--sand);
+  opacity: 0.8;
+  margin-bottom: 6px;
+  font-style: italic;
+  letter-spacing: 0.01em;
 }
 
 @media (max-width: 480px) {
