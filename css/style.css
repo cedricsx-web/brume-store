@@ -1015,6 +1015,10 @@ footer { background: #0c0c0c; border-top: 1px solid var(--light-mist); padding: 
   color: var(--linen);
   margin-bottom: 22px;
 }
+#hours-title-month {
+  color: var(--sand);
+  font-style: italic;
+}
 
 .hours-list {
   display: flex;
