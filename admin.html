@@ -34,6 +34,30 @@
   .sidebar-footer a { font-family: 'Space Mono', monospace; font-size: .58rem; letter-spacing: .1em; text-transform: uppercase; color: var(--sand); opacity: .5; text-decoration: none; transition: opacity .2s; }
   .sidebar-footer a:hover { opacity: 1; }
 
+  /* TABS */
+  .admin-tabs { display: flex; gap: 2px; margin-bottom: 28px; background: rgba(255,255,255,.06); padding: 3px; border-radius: 2px; }
+  .admin-tab { flex: 1; background: none; border: none; padding: 10px 8px; font-family: 'Space Mono', monospace; font-size: .58rem; letter-spacing: .1em; text-transform: uppercase; color: var(--sand); opacity: .55; cursor: pointer; transition: all .2s; border-radius: 1px; }
+  .admin-tab:hover { opacity: .85; }
+  .admin-tab.active { background: var(--green); color: var(--linen); opacity: 1; }
+
+  /* HORAIRES FORM */
+  .horaires-item { padding: 14px 16px; cursor: pointer; border-radius: 2px; margin-bottom: 2px; transition: background .2s; border-left: 2px solid transparent; }
+  .horaires-item:hover { background: rgba(255,255,255,.06); }
+  .horaires-item.active { background: rgba(255,255,255,.08); border-left-color: var(--green); }
+  .horaires-item-title { font-size: .88rem; color: var(--linen); text-transform: capitalize; }
+  .horaires-item-meta { font-family: 'Space Mono', monospace; font-size: .56rem; color: var(--sand); opacity: .6; margin-top: 4px; }
+
+  .day-row { display: grid; grid-template-columns: 140px 1fr auto; gap: 16px; align-items: center; padding: 14px 0; border-bottom: 1px solid rgba(26,26,24,.08); }
+  .day-row:last-child { border-bottom: none; }
+  .day-row-label { font-family: 'DM Sans', sans-serif; font-size: .95rem; color: var(--black); }
+  .day-row input[type=text] { margin: 0; }
+  .day-row-closed { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .day-row-closed label { font-size: .68rem; text-transform: none; letter-spacing: 0; opacity: .7; cursor: pointer; }
+  .day-row-closed input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--red); }
+  .horaires-card { background: var(--linen); border: 1px solid rgba(26,26,24,.1); padding: 8px 28px; margin-top: 8px; }
+  .month-picker-row { display: flex; align-items: flex-end; gap: 16px; margin-bottom: 24px; }
+  .month-picker-row .form-group { flex: 0 0 220px; }
+
   /* MAIN */
   .main { padding: 48px; }
   .main-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; }
@@ -100,6 +124,9 @@
     .form-grid { grid-template-columns: 1fr; gap: 18px; }
     .share-btns { flex-direction: column; }
     .share-btns .btn { width: 100%; }
+    .day-row { grid-template-columns: 1fr; gap: 8px; padding: 14px 0; }
+    .horaires-card { padding: 8px 18px; }
+    .month-picker-row { flex-direction: column; align-items: stretch; }
   }
   @media (max-width: 480px) {
     .sidebar { max-height: 220px; padding: 24px 16px; }
@@ -115,12 +142,31 @@
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="sidebar-logo">Brüme</div>
-    <div class="sidebar-sub">Éditions — Admin</div>
-    <button class="btn-new" onclick="newArticle()">+ Nouvel article</button>
-    <div class="sidebar-section">Articles</div>
-    <div class="article-list" id="article-list">
-      <div style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--sand);opacity:.4;padding:12px 0;">Chargement…</div>
+    <div class="sidebar-sub">Admin</div>
+
+    <div class="admin-tabs">
+      <button id="tab-articles" class="admin-tab active" onclick="switchTab('articles')">Éditions</button>
+      <button id="tab-horaires" class="admin-tab" onclick="switchTab('horaires')">Horaires</button>
     </div>
+
+    <!-- ONGLET ARTICLES -->
+    <div id="panel-articles">
+      <button class="btn-new" onclick="newArticle()">+ Nouvel article</button>
+      <div class="sidebar-section">Articles</div>
+      <div class="article-list" id="article-list">
+        <div style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--sand);opacity:.4;padding:12px 0;">Chargement…</div>
+      </div>
+    </div>
+
+    <!-- ONGLET HORAIRES -->
+    <div id="panel-horaires" style="display:none;">
+      <button class="btn-new" onclick="newHorairesMonth()">+ Nouveau mois</button>
+      <div class="sidebar-section">Mois enregistrés</div>
+      <div class="article-list" id="horaires-list">
+        <div style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--sand);opacity:.4;padding:12px 0;">Chargement…</div>
+      </div>
+    </div>
+
     <div class="sidebar-footer">
       <a href="editions.html" target="_blank">↗ Voir le site</a>
     </div>
@@ -141,12 +187,30 @@
 <script>
 let currentId = null
 let articles = []
+let currentTab = 'articles'
+let currentHorairesId = null
+let horairesEntries = []
 
 // ── INIT ──
 ;(async () => {
   if (!checkAuth()) return
   await loadList()
 })()
+
+// ── ONGLETS ──
+function switchTab(tab) {
+  currentTab = tab
+  document.getElementById('tab-articles').classList.toggle('active', tab === 'articles')
+  document.getElementById('tab-horaires').classList.toggle('active', tab === 'horaires')
+  document.getElementById('panel-articles').style.display = tab === 'articles' ? '' : 'none'
+  document.getElementById('panel-horaires').style.display = tab === 'horaires' ? '' : 'none'
+
+  if (tab === 'articles') {
+    if (!currentId) document.getElementById('main').innerHTML = `<div class="empty-state"><p>Sélectionnez un article ou créez-en un nouveau.</p></div>`
+  } else {
+    loadHorairesList()
+  }
+}
 
 async function loadList() {
   try {
@@ -325,6 +389,156 @@ async function confirmDelete(id) {
     await loadList()
     document.getElementById('main').innerHTML = `<div class="empty-state"><p>Article supprimé.</p></div>`
   } catch(e) {
+    showToast('Erreur lors de la suppression', 'error')
+  }
+}
+
+// ═════════════════════════════════════
+// SECTION HORAIRES
+// ═════════════════════════════════════
+
+const MOIS_LABELS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
+
+function currentMonthKey() {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
+
+function monthLabel(key) {
+  if (!key || !key.includes('-')) return key || '—'
+  const [y, m] = key.split('-')
+  const idx = parseInt(m, 10) - 1
+  return `${MOIS_LABELS[idx] || m} ${y}`
+}
+
+// ── CHARGER LA LISTE DES MOIS ──
+async function loadHorairesList() {
+  const el = document.getElementById('horaires-list')
+  el.innerHTML = '<div style="font-family:\'Space Mono\',monospace;font-size:.6rem;color:var(--sand);opacity:.4;padding:12px 0;">Chargement…</div>'
+  try {
+    horairesEntries = await getAllHoraires()
+    renderHorairesList()
+    if (!currentHorairesId) {
+      document.getElementById('main').innerHTML = `<div class="empty-state"><p>Sélectionnez un mois ou créez-en un nouveau.</p></div>`
+    }
+  } catch (e) {
+    el.innerHTML = '<div style="color:var(--red);font-size:.7rem;padding:8px">Erreur de connexion Airtable</div>'
+    console.error(e)
+  }
+}
+
+function renderHorairesList() {
+  const el = document.getElementById('horaires-list')
+  if (!horairesEntries.length) {
+    el.innerHTML = '<div style="font-family:\'Space Mono\',monospace;font-size:.6rem;color:var(--sand);opacity:.4;padding:12px 0">Aucun mois enregistré</div>'
+    return
+  }
+  el.innerHTML = horairesEntries.map(h => `
+    <div class="horaires-item ${h.id === currentHorairesId ? 'active' : ''}" onclick="editHorairesMonth('${h.id}')">
+      <div class="horaires-item-title">${monthLabel(h.mois)}</div>
+      <div class="horaires-item-meta">${h.jours.filter(j => j && !/ferm/i.test(j)).length} jour(s) ouvert(s)</div>
+    </div>`).join('')
+}
+
+// ── NOUVEAU MOIS ──
+function newHorairesMonth() {
+  currentHorairesId = null
+  renderHorairesForm({ mois: currentMonthKey(), jours: JOURS_SEMAINE.map(() => '') })
+  document.querySelectorAll('.horaires-item').forEach(el => el.classList.remove('active'))
+}
+
+// ── ÉDITER UN MOIS ──
+function editHorairesMonth(id) {
+  currentHorairesId = id
+  const h = horairesEntries.find(x => x.id === id)
+  renderHorairesForm(h)
+  renderHorairesList()
+}
+
+// ── FORMULAIRE ──
+function renderHorairesForm(h) {
+  const isNew = !h.id
+
+  document.getElementById('main').innerHTML = `
+    <div class="main-header">
+      <h1 class="main-title">${isNew ? 'Nouveaux horaires' : `Horaires — ${monthLabel(h.mois)}`}</h1>
+      <div class="main-actions">
+        ${!isNew ? `<button class="btn btn-delete" onclick="confirmDeleteHoraires('${h.id}')">Supprimer</button>` : ''}
+        <button class="btn btn-save" onclick="saveHorairesForm()">Enregistrer</button>
+      </div>
+    </div>
+
+    <div class="month-picker-row">
+      <div class="form-group">
+        <label>Mois concerné</label>
+        <input id="h-mois" type="month" value="${h.mois || currentMonthKey()}">
+      </div>
+      <span class="field-hint" style="padding-bottom:10px;">Un jeu d'horaires distinct par mois — utile pour les horaires d'été, les fêtes, etc.</span>
+    </div>
+
+    <div class="horaires-card">
+      ${JOURS_SEMAINE.map((j, i) => {
+        const value = h.jours[i] || ''
+        const isClosed = !value || /ferm/i.test(value)
+        return `
+        <div class="day-row">
+          <span class="day-row-label">${JOURS_LABELS[j]}</span>
+          <input type="text" id="h-day-${j}" value="${esc(isClosed ? '' : value)}" placeholder="ex : 11h – 19h" ${isClosed ? 'disabled' : ''}>
+          <div class="day-row-closed">
+            <input type="checkbox" id="h-closed-${j}" ${isClosed ? 'checked' : ''} onchange="toggleDayClosed('${j}')">
+            <label for="h-closed-${j}">Fermé</label>
+          </div>
+        </div>`
+      }).join('')}
+    </div>
+  `
+}
+
+function toggleDayClosed(j) {
+  const checkbox = document.getElementById(`h-closed-${j}`)
+  const input = document.getElementById(`h-day-${j}`)
+  input.disabled = checkbox.checked
+  if (checkbox.checked) input.value = ''
+}
+
+// ── SAUVEGARDE ──
+async function saveHorairesForm() {
+  const mois = document.getElementById('h-mois').value
+  if (!mois) { showToast('Le mois est obligatoire', 'error'); return }
+
+  const joursValues = JOURS_SEMAINE.map(j => {
+    const closed = document.getElementById(`h-closed-${j}`).checked
+    return closed ? '' : document.getElementById(`h-day-${j}`).value.trim()
+  })
+
+  // Empêcher les doublons : si un autre enregistrement existe déjà pour ce mois
+  const duplicate = horairesEntries.find(h => h.mois === mois && h.id !== currentHorairesId)
+  if (duplicate) {
+    showToast('Ce mois a déjà des horaires enregistrés — modifiez-les directement', 'error')
+    return
+  }
+
+  try {
+    const saved = await saveHoraires(mois, joursValues, currentHorairesId)
+    if (!currentHorairesId) currentHorairesId = saved.id
+    showToast('Horaires enregistrés ✓', 'success')
+    await loadHorairesList()
+  } catch (e) {
+    showToast('Erreur lors de la sauvegarde', 'error')
+    console.error(e)
+  }
+}
+
+// ── SUPPRESSION ──
+async function confirmDeleteHoraires(id) {
+  if (!confirm('Supprimer les horaires de ce mois définitivement ?')) return
+  try {
+    await deleteHoraires(id)
+    currentHorairesId = null
+    showToast('Horaires supprimés', 'success')
+    await loadHorairesList()
+    document.getElementById('main').innerHTML = `<div class="empty-state"><p>Horaires supprimés.</p></div>`
+  } catch (e) {
     showToast('Erreur lors de la suppression', 'error')
   }
 }
