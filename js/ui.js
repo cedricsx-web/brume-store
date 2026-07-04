@@ -15,6 +15,7 @@ const UI = {
     const selBtn = document.createElement('button');
     selBtn.className = 'cat-btn cat-btn-selection active';
     selBtn.dataset.catId = 'selection';
+    selBtn.dataset.catName = 'Sélection du mois';
     selBtn.textContent = 'Sélection du mois';
     selBtn.addEventListener('click', () => Store.filterBySelection());
     nav.appendChild(selBtn);
@@ -22,6 +23,7 @@ const UI = {
     const allBtn = document.createElement('button');
     allBtn.className = 'cat-btn';
     allBtn.dataset.catId = 'all';
+    allBtn.dataset.catName = 'Tous nos produits';
     allBtn.textContent = 'Tout voir';
     allBtn.addEventListener('click', () => Store.filterByCategory(null));
     nav.appendChild(allBtn);
@@ -49,6 +51,7 @@ const UI = {
     const btn = document.createElement('button');
     btn.className = 'cat-btn' + (depth > 0 ? ' cat-btn-sub' : '');
     btn.dataset.catId = cat.id;
+    btn.dataset.catName = cat.name;
     btn.innerHTML = cat.name + (hasSubs ? ' <span class="cat-arrow">▾</span>' : '');
     // Click: filter by category
     btn.addEventListener('click', (e) => {
@@ -90,7 +93,37 @@ const UI = {
     return wrapper;
   },
 
+  // Sous-titres fixes pour les 2 entrées spéciales du nav.
+  // Pour toutes les autres rubriques, le sous-titre est calculé dynamiquement
+  // à partir des sous-catégories réelles (voir _subcategoryNamesFor ci-dessous).
+  CATEGORY_SUBTITLES: {
+    all: 'Objets rares, pièces choisies',
+    selection: 'Nos coups de cœur du moment',
+  },
+
+  // Cherche un noeud par id dans l'arbre de catégories et renvoie les noms
+  // de ses sous-catégories directes (visibles), joints par « / ».
+  // Renvoie '' si la catégorie n'a pas de sous-catégories.
+  _subcategoryNamesFor(categoryId) {
+    const tree = (typeof Store !== 'undefined' && Store.categories) || [];
+    let found = null;
+    const search = (nodes) => {
+      for (const node of nodes) {
+        if (String(node.id) === String(categoryId)) { found = node; return true; }
+        if (node.subcategories && search(node.subcategories)) return true;
+      }
+      return false;
+    };
+    search(tree);
+    if (!found || !found.subcategories) return '';
+    const names = found.subcategories
+      .filter(s => s.name && s.name.trim() !== '' && s.name !== 'VIDE')
+      .map(s => s.name);
+    return names.join(' / ');
+  },
+
   setActiveCategory(id) {
+    let matchedBtn = null;
     document.querySelectorAll('.cat-btn').forEach(btn => {
       let active;
       if (id === 'selection') {
@@ -101,7 +134,16 @@ const UI = {
         active = btn.dataset.catId == id;
       }
       btn.classList.toggle('active', active);
+      if (active) matchedBtn = btn;
     });
+
+    const titleKey = id === null ? 'all' : id;
+    const titleEl = document.getElementById('shop-title');
+    const subtitleEl = document.getElementById('shop-subtitle');
+    if (titleEl) titleEl.textContent = matchedBtn ? matchedBtn.dataset.catName : 'Tous nos produits';
+    if (subtitleEl) {
+      subtitleEl.textContent = this.CATEGORY_SUBTITLES[titleKey] || this._subcategoryNamesFor(titleKey);
+    }
   },
 
   /* ── PRODUCTS ── */
