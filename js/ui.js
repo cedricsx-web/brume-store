@@ -129,7 +129,7 @@ const UI = {
         <img src="https://brumeconceptstore.hiboutik.com/myshop/images/?img=big_${p.product_id}-1.jpg" alt="${p.product_model}" loading="lazy"
           style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;"
           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
-        <div class="product-img-placeholder" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;background:${getFallbackGradient(p.product_id)};font-size:32px;color:rgba(242,238,231,0.15);font-family:var(--serif);letter-spacing:0.08em;font-weight:300;">Brüme</div>
+        <div class="product-img-placeholder" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;background:${getFallbackGradient(p.product_id)};font-size:32px;color:rgba(var(--ink-rgb),0.15);font-family:var(--serif);letter-spacing:0.08em;font-weight:300;">Brüme</div>
         ${p.tag === 'new'  ? '<span class="product-badge">Nouveau</span>' : ''}
         ${p.tag === 'sale' ? '<span class="product-badge sale">Soldes</span>'  : ''}
         ${oos              ? '<span class="product-badge oos">Rupture</span>'  : ''}
