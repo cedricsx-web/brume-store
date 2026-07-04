@@ -2,6 +2,21 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
+  <script>
+    // Applique le thème avant le premier rendu (évite un flash).
+    // Logique dupliquée depuis js/theme.js — voir ce fichier pour les
+    // seuils horaires et la doc complète.
+    (function () {
+      var KEY = 'brume-theme', stored = null;
+      try { stored = localStorage.getItem(KEY); } catch (e) {}
+      var theme = stored;
+      if (!theme) {
+        var h = new Date().getHours();
+        theme = (h >= 20 || h < 7) ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BrüMe — Concept Store · Cachan</title>
   <meta name="description" content="BrüMe est un concept store à Cachan, entre galerie et boutique. Objets de décoration, papeterie, plantes et art de vivre choisis avec soin." />
@@ -39,7 +54,7 @@
   <div class="modal-inner">
     <div class="modal-img-wrap">
       <img id="modal-img" src="" alt="" />
-      <div id="modal-img-placeholder" style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-family:var(--serif);font-size:24px;color:rgba(242,238,231,0.15);letter-spacing:0.1em;">Brüme</div>
+      <div id="modal-img-placeholder" style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-family:var(--serif);font-size:24px;color:rgba(var(--ink-rgb),0.15);letter-spacing:0.1em;">Brüme</div>
     </div>
     <div class="modal-info">
       <p id="modal-brand" class="modal-brand"></p>
@@ -83,6 +98,15 @@
       <a href="#about" class="hide-mobile">Notre histoire</a>
     </nav>
     <div class="header-right">
+      <button class="theme-toggle" id="theme-toggle" aria-label="Changer de thème jour/nuit">
+        <svg class="icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+        </svg>
+        <svg class="icon-sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+        </svg>
+      </button>
       <button class="cart-btn" onclick="UI.toggleCart()" aria-label="Ouvrir le panier">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
@@ -389,6 +413,7 @@
 <script src="js/ui.js"></script>
 <script src="js/store.js"></script>
 <script src="js/cms.js"></script>
+<script src="js/theme.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     Store.init().then(openProductFromUrl);
@@ -532,8 +557,8 @@
 
 <!-- CHECKOUT LOADING OVERLAY -->
 <div id="checkout-loading" style="display:none;position:fixed;inset:0;background:rgba(17,16,16,0.92);z-index:9999;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;">
-  <div style="width:32px;height:32px;border:2px solid rgba(242,238,231,0.15);border-top-color:var(--sand);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
-  <p style="font-family:var(--mono);font-size:11px;letter-spacing:0.1em;color:rgba(242,238,231,0.5);text-transform:uppercase;">Préparation du panier…</p>
+  <div style="width:32px;height:32px;border:2px solid rgba(var(--ink-rgb),0.15);border-top-color:var(--sand);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+  <p style="font-family:var(--mono);font-size:11px;letter-spacing:0.1em;color:rgba(var(--ink-rgb),0.5);text-transform:uppercase;">Préparation du panier…</p>
 </div>
 <style>
 @keyframes spin { to { transform: rotate(360deg); } }
