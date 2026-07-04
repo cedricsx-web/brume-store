@@ -289,7 +289,7 @@ hr.divider {
 
 .product-img-wrap {
   position: relative; overflow: hidden;
-  aspect-ratio: 3/4; background: #1a1a1a;
+  aspect-ratio: 3/4; background: var(--surface);
 }
 .product-img-wrap img {
   height: 100%; object-fit: cover;
@@ -650,7 +650,7 @@ hr.divider {
 .newsletter-form button:hover { background: var(--accent-hover); }
 
 /* ── FOOTER ────────────────────────────────────────── */
-footer { background: #0c0c0c; border-top: 1px solid var(--light-mist); padding: 64px 40px 32px; }
+footer { background: var(--bg); border-top: 1px solid var(--light-mist); padding: 64px 40px 32px; }
 .footer-top { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
 .footer-brand .brand-name { font-family: var(--serif); font-size: 20px; letter-spacing: 0.2em; margin-bottom: 14px; }
 .footer-brand p { font-size: 12px; line-height: 1.7; color: rgba(var(--ink-rgb),0.3); max-width: 260px; margin-bottom: 16px; }
