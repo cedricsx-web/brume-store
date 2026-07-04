@@ -22,7 +22,7 @@
   <meta name="description" content="BrüMe est un concept store à Cachan, entre galerie et boutique. Objets de décoration, papeterie, plantes et art de vivre choisis avec soin." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&family=Space+Mono&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&family=Space+Mono&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -91,7 +91,10 @@
 <!-- HEADER -->
 <header>
   <div class="header-inner">
-    <span class="header-logo">BrüMe</span>
+    <a href="/" class="header-logo" aria-label="Brüme Concept Store">
+      <img src="img/brume-logo-blue.svg" alt="Brüme Concept Store" class="header-logo-img logo-day" />
+      <img src="img/brume-logo-white.svg" alt="Brüme Concept Store" class="header-logo-img logo-night" />
+    </a>
     <nav class="nav-left">
       <a href="editions.html" class="hide-mobile">Histoires</a>
       <a href="#boutique" class="hide-mobile" id="nav-selection">Sélection du mois</a>
@@ -145,8 +148,11 @@
 
 <!-- SHOP -->
 <section id="boutique">
-  <div class="section-header">
-    <h2 class="section-title">Tous nos produits</h2>
+  <div class="section-header section-header-shop">
+    <div>
+      <h2 class="section-title-cat" id="shop-title">Tous nos produits</h2>
+      <p class="section-subtitle-cat" id="shop-subtitle"></p>
+    </div>
   </div>
   <nav id="category-nav" aria-label="Filtrer par catégorie"></nav>
   <div id="products-grid" role="list"></div>
