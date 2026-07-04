@@ -178,7 +178,7 @@ function imageUrl(productId) {
 
 function pageShell({ title, metaDescription, canonical, h1, bodyHtml, jsonLd, ogImage }) {
   return `<!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
