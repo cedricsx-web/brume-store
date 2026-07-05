@@ -283,6 +283,7 @@ header {
   font-size: clamp(34px, 4.2vw, 54px); line-height: 1; letter-spacing: 0.01em;
   margin-bottom: 8px;
 }
+.section-title-cat em { color: var(--sand); font-style: normal; }
 .section-subtitle-cat {
   font-family: var(--serif); font-weight: 300; font-style: italic;
   font-size: clamp(18px, 2vw, 26px); color: var(--ink); opacity: 0.75;
@@ -588,6 +589,7 @@ hr.divider {
 .editorial-image img { height: 100%; object-fit: cover; filter: brightness(0.75); }
 .editorial-text .eyebrow { font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; color: var(--sand); margin-bottom: 20px; }
 .editorial-text h2 { font-family: var(--hand); font-weight: 700; color: var(--accent); font-size: clamp(34px,4vw,50px); line-height: 1; margin-bottom: 20px; }
+.editorial-text h2 em { color: var(--sand); font-style: normal; }
 .editorial-text p { font-size: 14px; line-height: 1.85; color: rgba(var(--ink-rgb),0.5); margin-bottom: 32px; }
 
 /* ── GOOGLE REVIEWS ────────────────────────────────── */
@@ -595,7 +597,7 @@ hr.divider {
 .reviews-header { text-align: center; margin-bottom: 48px; }
 .reviews-header .eyebrow { font-family: var(--mono); font-size: 10px; letter-spacing: 0.15em; color: var(--sand); margin-bottom: 20px; display: block; }
 .reviews-header h2 { font-family: var(--hand); font-weight: 700; color: var(--accent); font-size: clamp(34px,4vw,50px); line-height: 1; margin-bottom: 20px; }
-.reviews-header h2 em { color: var(--accent); font-style: normal; }
+.reviews-header h2 em { color: var(--sand); font-style: normal; }
 .reviews-summary { display: flex; align-items: center; justify-content: center; gap: 12px; }
 .reviews-stars { color: var(--sand); font-size: 18px; letter-spacing: 2px; }
 .reviews-count { font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; color: rgba(var(--ink-rgb),0.45); }
