@@ -146,10 +146,10 @@
 
 <section class="hero">
   <div>
-    <span class="eyebrow">BrüMe — Éditions</span>
-    <h1>Objets,<br><em>créateurs,</em><br>matières.</h1>
+    <span class="eyebrow" id="editions-eyebrow">BrüMe — Éditions</span>
+    <h1 id="editions-titre">Objets,<br><em>créateurs,</em><br>matières.</h1>
   </div>
-  <p class="hero-desc">Des textes sur les objets qui nous entourent, les designers qui les pensent, et la manière dont les choses bien faites s'inscrivent dans le quotidien.</p>
+  <p class="hero-desc" id="editions-description">Des textes sur les objets qui nous entourent, les designers qui les pensent, et la manière dont les choses bien faites s'inscrivent dans le quotidien.</p>
 </section>
 
 <div id="content">
@@ -170,6 +170,52 @@
     const count = getLocalCartCount()
     badge.textContent = count
     badge.classList.toggle('visible', count > 0)
+  })()
+</script>
+<script>
+  // Charge le contenu de l'en-tête (eyebrow / titre / description) depuis
+  // Airtable — champs partagés avec l'aperçu "Histoires" de l'accueil — et
+  // l'injecte par-dessus le HTML statique. Si la config est vide ou en cas
+  // d'erreur, le contenu HTML déjà présent dans la page reste affiché tel
+  // quel (fallback).
+  (async () => {
+    try {
+      const c = await getAccueil()
+      if (!c) return
+
+      const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+      const setText = (id, value) => {
+        if (value == null || value === '') return
+        const el = document.getElementById(id)
+        if (el) el.textContent = value
+      }
+
+      // Reconstruit la mise en page à 3 lignes (partie du milieu en italique)
+      // à partir d'un titre texte simple séparé par des virgules — ex.
+      // "Objets, créateurs, matières" -> "Objets,<br><em>créateurs,</em><br>matières".
+      // Si le titre ne contient pas 2 ou 3 parties, il s'affiche sur une seule ligne.
+      const setEditionsTitre = (id, value) => {
+        if (!value) return
+        const el = document.getElementById(id)
+        if (!el) return
+        const parts = value.split(',').map(s => s.trim()).filter(Boolean)
+        if (parts.length === 3) {
+          el.innerHTML = `${esc(parts[0])},<br><em>${esc(parts[1])},</em><br>${esc(parts[2])}`
+        } else if (parts.length === 2) {
+          el.innerHTML = `${esc(parts[0])},<br><em>${esc(parts[1])}</em>`
+        } else {
+          el.textContent = value
+        }
+      }
+
+      setText('editions-eyebrow', c.editions_eyebrow)
+      setEditionsTitre('editions-titre', c.editions_titre)
+      setText('editions-description', c.editions_description)
+    } catch (e) {
+      console.error('Chargement de l\'en-tête Éditions:', e)
+      // Silencieux : le HTML statique existant reste affiché.
+    }
   })()
 </script>
 <script>

@@ -775,7 +775,8 @@ function renderAccueilForm(a) {
     </div>
 
     <div class="section-block">
-      <h2 class="section-block-title">Éditions (aperçu des articles sur l'accueil)</h2>
+      <h2 class="section-block-title">Éditions</h2>
+      <p class="field-hint" style="margin:-8px 0 16px;">Eyebrow + titre utilisés à la fois sur l'accueil (aperçu "Histoires") et en haut de la page « Éditions » (liste de tous les articles). La description n'apparaît que sur la page « Éditions » — pas sur l'accueil.</p>
       <div class="form-grid">
         <div class="form-group">
           <label>Eyebrow</label>
@@ -783,11 +784,12 @@ function renderAccueilForm(a) {
         </div>
         <div class="form-group">
           <label>Titre</label>
-          <input id="a-editions-titre" type="text" value="${esc(a.editions_titre) || 'Histoires'}">
+          <input id="a-editions-titre" type="text" value="${esc(a.editions_titre) || 'Objets, créateurs, matières'}" placeholder="ex : Objets, créateurs, matières">
         </div>
+        <p class="field-hint" style="grid-column:1/-1;margin:-8px 0 4px;">Sur la page « Éditions », si le titre contient 2 ou 3 parties séparées par des virgules, il s'affiche automatiquement sur plusieurs lignes avec la partie du milieu en italique (comme actuellement). Sur l'accueil, il s'affiche simplement sur une ligne.</p>
         <div class="form-group full">
-          <label>Description</label>
-          <textarea id="a-editions-description" rows="2" placeholder="Optionnel — une phrase d'introduction sous le titre">${esc(a.editions_description)}</textarea>
+          <label>Description (page « Éditions » uniquement)</label>
+          <textarea id="a-editions-description" rows="3">${esc(a.editions_description) || `Des textes sur les objets qui nous entourent, les designers qui les pensent, et la manière dont les choses bien faites s'inscrivent dans le quotidien.`}</textarea>
         </div>
       </div>
     </div>
