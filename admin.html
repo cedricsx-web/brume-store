@@ -230,7 +230,7 @@
     <div id="panel-accueil" style="display:none;">
       <div class="sidebar-section">Page d'accueil</div>
       <div style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--sand);opacity:.5;line-height:1.6;padding:4px 0 12px;">
-        Le texte et les images des sections « Hero » et « Notre histoire » de la page d'accueil.
+        Le texte et les images des sections « Hero », « Notre histoire », « Éditions » et les titres de la boutique.
       </div>
     </div>
 
@@ -700,6 +700,7 @@ function renderAccueilForm(a) {
 
     <div class="section-block">
       <h2 class="section-block-title">Hero</h2>
+      <p class="field-hint" style="margin:-8px 0 16px;">Les deux champs "Titre" sont automatiquement assemblés sur une seule ligne, séparés par un espace (le second s'affiche en italique).</p>
       <div class="form-grid">
         <div class="form-group full">
           <label>Eyebrow (petite ligne au-dessus du titre)</label>
@@ -737,6 +738,7 @@ function renderAccueilForm(a) {
 
     <div class="section-block">
       <h2 class="section-block-title">Notre histoire</h2>
+      <p class="field-hint" style="margin:-8px 0 16px;">Comme pour le Hero, les deux champs "Titre" sont assemblés sur une seule ligne avec un espace.</p>
       <div class="form-grid">
         <div class="form-group full">
           <label>Eyebrow</label>
@@ -744,7 +746,7 @@ function renderAccueilForm(a) {
         </div>
         <div class="form-group">
           <label>Titre (début)</label>
-          <input id="a-histoire-titre" type="text" value="${esc(a.histoire_titre) || 'Un lieu conçu pour '}" placeholder="ex : Un lieu conçu pour ">
+          <input id="a-histoire-titre" type="text" value="${esc(a.histoire_titre) || 'Un lieu conçu pour'}" placeholder="ex : Un lieu conçu pour">
         </div>
         <div class="form-group">
           <label>Titre (fin, en italique)</label>
@@ -771,6 +773,56 @@ function renderAccueilForm(a) {
         </div>
       </div>
     </div>
+
+    <div class="section-block">
+      <h2 class="section-block-title">Éditions (aperçu des articles sur l'accueil)</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Eyebrow</label>
+          <input id="a-editions-eyebrow" type="text" value="${esc(a.editions_eyebrow) || 'BrüMe — Éditions'}">
+        </div>
+        <div class="form-group">
+          <label>Titre</label>
+          <input id="a-editions-titre" type="text" value="${esc(a.editions_titre) || 'Histoires'}">
+        </div>
+        <div class="form-group full">
+          <label>Description</label>
+          <textarea id="a-editions-description" rows="2" placeholder="Optionnel — une phrase d'introduction sous le titre">${esc(a.editions_description)}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-block">
+      <h2 class="section-block-title">Boutique — titres des vues</h2>
+      <p class="field-hint" style="margin:-8px 0 16px;">Le titre et le sous-titre affichés au-dessus de la grille de produits pour chacune de ces 3 vues. N'affecte pas le libellé des boutons du menu de catégories.</p>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>« Tous les produits » — titre</label>
+          <input id="a-shop-all-titre" type="text" value="${esc(a.shop_all_titre) || 'Tous nos produits'}">
+        </div>
+        <div class="form-group">
+          <label>« Tous les produits » — sous-titre</label>
+          <input id="a-shop-all-soustitre" type="text" value="${esc(a.shop_all_soustitre) || 'Objets rares, pièces choisies'}">
+        </div>
+        <div class="form-group">
+          <label>« Sélection du mois » — titre</label>
+          <input id="a-shop-selection-titre" type="text" value="${esc(a.shop_selection_titre) || 'Sélection du mois'}">
+        </div>
+        <div class="form-group">
+          <label>« Sélection du mois » — sous-titre</label>
+          <input id="a-shop-selection-soustitre" type="text" value="${esc(a.shop_selection_soustitre) || 'Nos coups de cœur du moment'}">
+        </div>
+        <div class="form-group">
+          <label>« Soldes » — titre</label>
+          <input id="a-shop-soldes-titre" type="text" value="${esc(a.shop_soldes_titre) || 'Soldes'}">
+        </div>
+        <div class="form-group">
+          <label>« Soldes » — sous-titre</label>
+          <input id="a-shop-soldes-soustitre" type="text" value="${esc(a.shop_soldes_soustitre) || 'Nos meilleures réductions du moment'}">
+        </div>
+      </div>
+      <p class="field-hint">Le bouton « Soldes » n'apparaît dans le menu que s'il existe au moins un produit avec un prix remisé renseigné dans Hiboutik (prix barré inférieur au prix normal).</p>
+    </div>
   `
 }
 
@@ -788,6 +840,15 @@ async function saveAccueilForm() {
     histoire_paragraphe_1: document.getElementById('a-histoire-p1').value.trim(),
     histoire_paragraphe_2: document.getElementById('a-histoire-p2').value.trim(),
     histoire_image_url: document.getElementById('a-histoire-image').value.trim(),
+    editions_eyebrow: document.getElementById('a-editions-eyebrow').value.trim(),
+    editions_titre: document.getElementById('a-editions-titre').value.trim(),
+    editions_description: document.getElementById('a-editions-description').value.trim(),
+    shop_all_titre: document.getElementById('a-shop-all-titre').value.trim(),
+    shop_all_soustitre: document.getElementById('a-shop-all-soustitre').value.trim(),
+    shop_selection_titre: document.getElementById('a-shop-selection-titre').value.trim(),
+    shop_selection_soustitre: document.getElementById('a-shop-selection-soustitre').value.trim(),
+    shop_soldes_titre: document.getElementById('a-shop-soldes-titre').value.trim(),
+    shop_soldes_soustitre: document.getElementById('a-shop-soldes-soustitre').value.trim(),
   }
 
   try {

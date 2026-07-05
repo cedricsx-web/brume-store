@@ -180,9 +180,10 @@
 
 <!-- HISTOIRES (aperçu articles) -->
 <section class="histoires-preview" id="histoires-preview">
-  <div class="section-header">
-    <p class="eyebrow">BrüMe — Éditions</p>
-    <h2 class="section-title">Histoires</h2>
+  <div class="section-header" style="flex-direction:column;align-items:flex-start;gap:10px;">
+    <p class="eyebrow" id="editions-eyebrow">BrüMe — Éditions</p>
+    <h2 class="section-title" id="editions-titre">Histoires</h2>
+    <p class="section-desc" id="editions-description"></p>
   </div>
   <div id="histoires-grid" class="histoires-grid"></div>
 </section>
@@ -317,7 +318,7 @@
     <p class="eyebrow">Sélection du moment</p>
     <h2>Des <em>soldes</em> qui valent le détour</h2>
     <p>Une sélection d'objets soigneusement choisis, maintenant à prix réduit. Stocks limités.</p>
-    <button class="btn-primary" onclick="Store.filterBySale(); document.getElementById('boutique').scrollIntoView({behavior:'smooth'})">
+    <button class="btn-primary" onclick="Store.filterBySoldes(); document.getElementById('boutique').scrollIntoView({behavior:'smooth'})">
       Voir les soldes →
     </button>
   </div>
@@ -450,51 +451,52 @@
     Store.init().then(openProductFromUrl);
     loadHistoiresPreview();
     initReviewsCarousel();
-    loadAccueilContent();
   });
 
-  // Charge le contenu hero + notre histoire depuis Airtable et l'injecte
-  // par-dessus le HTML statique. Si aucune ligne n'existe ou en cas d'erreur,
-  // le contenu HTML déjà présent dans la page reste affiché tel quel (fallback).
-  async function loadAccueilContent() {
-    try {
-      const c = await getAccueil();
-      if (!c) return;
+  // Applique le contenu hero + notre histoire + éditions depuis Airtable
+  // (Store.config, chargé par Store.init) par-dessus le HTML statique. Si la
+  // config est vide (table non renseignée) ou absente (erreur réseau), le
+  // contenu HTML déjà présent dans la page reste affiché tel quel (fallback).
+  // Appelée depuis js/store.js une fois Store.config disponible.
+  function applyAccueilContent(c) {
+    if (!c) return;
 
-      const setText = (id, value) => {
-        if (value == null || value === '') return;
-        const el = document.getElementById(id);
-        if (el) el.textContent = value;
-      };
-      const setImg = (id, value) => {
-        if (!value) return;
-        const el = document.getElementById(id);
-        if (el) el.src = value;
-      };
+    const setText = (id, value) => {
+      if (value == null || value === '') return;
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
+    };
+    const setImg = (id, value) => {
+      if (!value) return;
+      const el = document.getElementById(id);
+      if (el) el.src = value;
+    };
+    // Titre + emphase italique sur une seule ligne, séparés par un simple
+    // espace (pas de <br> forcé — contrairement au HTML statique d'origine).
+    const setTitleWithEm = (titleId, titre, titreEm) => {
+      if (!titre) return;
+      const el = document.getElementById(titleId);
+      if (!el) return;
+      el.innerHTML = titreEm
+        ? `${titre} <em>${titreEm}</em>`
+        : titre;
+    };
 
-      setText('hero-eyebrow', c.hero_eyebrow);
-      setText('hero-title', c.hero_titre); // remplace tout le H1, y compris <em>, si renseigné
-      if (c.hero_titre && c.hero_titre_em) {
-        // Si titre ET emphase sont fournis séparément, recomposer proprement
-        document.getElementById('hero-title').innerHTML =
-          `${c.hero_titre}<br><em>${c.hero_titre_em}</em>`;
-      }
-      setText('hero-desc', c.hero_description);
-      setImg('hero-image', c.hero_image_url);
-      setText('hero-image-legende', c.hero_image_legende);
+    setText('hero-eyebrow', c.hero_eyebrow);
+    setTitleWithEm('hero-title', c.hero_titre, c.hero_titre_em);
+    setText('hero-desc', c.hero_description);
+    setImg('hero-image', c.hero_image_url);
+    setText('hero-image-legende', c.hero_image_legende);
 
-      setText('histoire-eyebrow', c.histoire_eyebrow);
-      if (c.histoire_titre) {
-        document.getElementById('histoire-titre').innerHTML =
-          c.histoire_titre_em ? `${c.histoire_titre}<em>${c.histoire_titre_em}</em>` : c.histoire_titre;
-      }
-      setText('histoire-p1', c.histoire_paragraphe_1);
-      setText('histoire-p2', c.histoire_paragraphe_2);
-      setImg('histoire-image', c.histoire_image_url);
-    } catch (e) {
-      console.error('loadAccueilContent error:', e);
-      // Silencieux : le HTML statique existant reste affiché.
-    }
+    setText('histoire-eyebrow', c.histoire_eyebrow);
+    setTitleWithEm('histoire-titre', c.histoire_titre, c.histoire_titre_em);
+    setText('histoire-p1', c.histoire_paragraphe_1);
+    setText('histoire-p2', c.histoire_paragraphe_2);
+    setImg('histoire-image', c.histoire_image_url);
+
+    setText('editions-eyebrow', c.editions_eyebrow);
+    setText('editions-titre', c.editions_titre);
+    setText('editions-description', c.editions_description);
   }
 
   // Carousel des avis Google — défilement manuel + auto-play, sans dépendance
