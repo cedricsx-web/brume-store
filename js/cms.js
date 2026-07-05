@@ -194,23 +194,31 @@ async function getAccueil() {
 }
 
 // Crée ou met à jour la ligne unique de contenu accueil.
+// Contrairement aux autres fonctions d'écriture du fichier, celle-ci vérifie
+// explicitement le statut HTTP : fetch() ne lève pas d'erreur sur un 4xx/5xx,
+// donc sans ce contrôle un problème (table absente du token, champ inconnu…)
+// serait avalé silencieusement et l'admin afficherait un faux succès.
 async function saveAccueil(fields, id = null) {
+  let res
   if (id) {
-    const res = await fetch(`${CMS_API}?table=${ACCUEIL_TABLE}&id=${id}`, {
+    res = await fetch(`${CMS_API}?table=${ACCUEIL_TABLE}&id=${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fields })
     })
-    return res.json()
   } else {
-    const res = await fetch(`${CMS_API}?table=${ACCUEIL_TABLE}`, {
+    res = await fetch(`${CMS_API}?table=${ACCUEIL_TABLE}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ records: [{ fields }] })
     })
-    const data = await res.json()
-    return data.records?.[0]
   }
+  const data = await res.json()
+  if (!res.ok) {
+    const msg = data?.error?.message || data?.error || 'Erreur Airtable inconnue'
+    throw new Error(msg)
+  }
+  return id ? data : data.records?.[0]
 }
 
 // Découpe la valeur brute d'un jour ("9h30 – 12h30, 14h – 19h") en un tableau
