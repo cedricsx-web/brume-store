@@ -209,11 +209,13 @@ const UI = {
 
   _renderProductsPage() {
     const grid = document.getElementById('products-grid');
-    const pager = document.getElementById('products-pagination');
+    const pagerTop = document.getElementById('products-pagination-top');
+    const pagerBottom = document.getElementById('products-pagination');
     const { products, stock } = this._pageState;
 
     grid.innerHTML = '';
-    if (pager) pager.innerHTML = '';
+    if (pagerTop) pagerTop.innerHTML = '';
+    if (pagerBottom) pagerBottom.innerHTML = '';
 
     if (!products.length) {
       grid.innerHTML = '<p class="no-products">Aucun produit dans cette catégorie.</p>';
@@ -230,7 +232,8 @@ const UI = {
     const pageProducts = products.slice(start, end);
     pageProducts.forEach(p => grid.appendChild(this._productCard(p, stock[p.product_id] ?? 99)));
 
-    if (pager) this._renderPagination(pager, page, totalPages, products.length);
+    if (pagerTop) this._renderPagination(pagerTop, page, totalPages, products.length);
+    if (pagerBottom) this._renderPagination(pagerBottom, page, totalPages, products.length);
   },
 
   _renderPagination(pager, page, totalPages, totalCount) {
@@ -266,17 +269,29 @@ const UI = {
       pager.appendChild(next);
     }
 
-    // Sélecteur du nombre de produits par page
-    const sizeWrap = document.createElement('label');
+    // Sélecteur du nombre de produits par page — seule la petite flèche est
+    // cliquable (zone dédiée), le texte "Afficher X" n'ouvre pas le menu.
+    const currentSize = this._pageState.pageSize || this._defaultPageSize();
+
+    const sizeWrap = document.createElement('div');
     sizeWrap.className = 'pagination-size';
-    sizeWrap.textContent = 'Afficher ';
+
+    const labelSpan = document.createElement('span');
+    labelSpan.className = 'pagination-size-label';
+    labelSpan.textContent = `Afficher ${currentSize === 'all' ? 'tous' : currentSize}`;
+    sizeWrap.appendChild(labelSpan);
+
+    const caretWrap = document.createElement('span');
+    caretWrap.className = 'pagination-size-caret';
+
     const select = document.createElement('select');
+    select.className = 'pagination-size-select';
     select.setAttribute('aria-label', 'Nombre de produits par page');
     this._pageSizeOptions().forEach(opt => {
       const o = document.createElement('option');
       o.value = opt;
       o.textContent = opt === 'all' ? 'tous' : opt;
-      if ((this._pageState.pageSize || this._defaultPageSize()) === opt) o.selected = true;
+      if (currentSize === opt) o.selected = true;
       select.appendChild(o);
     });
     select.addEventListener('change', () => {
@@ -285,7 +300,15 @@ const UI = {
       this._pageState.page = 1;
       this._renderProductsPage();
     });
-    sizeWrap.appendChild(select);
+    caretWrap.appendChild(select);
+
+    const arrowIcon = document.createElement('span');
+    arrowIcon.className = 'pagination-size-arrow-icon';
+    arrowIcon.textContent = '▾';
+    arrowIcon.setAttribute('aria-hidden', 'true');
+    caretWrap.appendChild(arrowIcon);
+
+    sizeWrap.appendChild(caretWrap);
     pager.appendChild(sizeWrap);
   },
 
