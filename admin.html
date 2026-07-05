@@ -795,7 +795,7 @@ async function saveAccueilForm() {
     if (!currentAccueilId) currentAccueilId = saved.id
     showToast('Contenu enregistré ✓', 'success')
   } catch (e) {
-    showToast('Erreur lors de l\'enregistrement', 'error')
+    showToast(`Erreur : ${e.message}`, 'error')
     console.error(e)
   }
 }
