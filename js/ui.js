@@ -225,8 +225,9 @@ const UI = {
     if (this._pageState.page > totalPages) this._pageState.page = totalPages;
     const page = this._pageState.page;
 
-    const start = (page - 1) * pageSize;
-    const pageProducts = products.slice(start, start + (pageSize === Infinity ? products.length : pageSize));
+    const start = pageSize === Infinity ? 0 : (page - 1) * pageSize;
+    const end = pageSize === Infinity ? products.length : start + pageSize;
+    const pageProducts = products.slice(start, end);
     pageProducts.forEach(p => grid.appendChild(this._productCard(p, stock[p.product_id] ?? 99)));
 
     if (pager) this._renderPagination(pager, page, totalPages, products.length);
