@@ -94,32 +94,28 @@ const UI = {
   },
 
   // Sous-titres fixes pour les 2 entrées spéciales du nav.
-  // Pour toutes les autres rubriques, le sous-titre est calculé dynamiquement
-  // à partir des sous-catégories réelles (voir _subcategoryNamesFor ci-dessous).
+  // Pour toutes les autres rubriques, titre/sous-titre sont calculés à partir
+  // du CHEMIN dans l'arbre (voir _findCategoryPath ci-dessous) :
+  //  - catégorie de premier niveau sélectionnée -> titre = son nom, pas de sous-titre
+  //  - sous-rubrique sélectionnée -> titre = rubrique principale (racine),
+  //    sous-titre = chemin jusqu'à la sous-rubrique choisie (ex. "Cartes / Japon")
   CATEGORY_SUBTITLES: {
     all: 'Objets rares, pièces choisies',
     selection: 'Nos coups de cœur du moment',
   },
 
-  // Cherche un noeud par id dans l'arbre de catégories et renvoie les noms
-  // de ses sous-catégories directes (visibles), joints par « / ».
-  // Renvoie '' si la catégorie n'a pas de sous-catégories.
-  _subcategoryNamesFor(categoryId) {
-    const tree = (typeof Store !== 'undefined' && Store.categories) || [];
-    let found = null;
-    const search = (nodes) => {
-      for (const node of nodes) {
-        if (String(node.id) === String(categoryId)) { found = node; return true; }
-        if (node.subcategories && search(node.subcategories)) return true;
+  // Cherche un noeud par id dans l'arbre de catégories et renvoie le chemin
+  // complet depuis la racine jusqu'à ce noeud (tableau de noeuds, racine en
+  // premier). Renvoie null si non trouvé.
+  _findCategoryPath(tree, targetId) {
+    for (const node of tree) {
+      if (String(node.id) === String(targetId)) return [node];
+      if (node.subcategories) {
+        const sub = this._findCategoryPath(node.subcategories, targetId);
+        if (sub) return [node, ...sub];
       }
-      return false;
-    };
-    search(tree);
-    if (!found || !found.subcategories) return '';
-    const names = found.subcategories
-      .filter(s => s.name && s.name.trim() !== '' && s.name !== 'VIDE')
-      .map(s => s.name);
-    return names.join(' / ');
+    }
+    return null;
   },
 
   setActiveCategory(id) {
@@ -137,13 +133,30 @@ const UI = {
       if (active) matchedBtn = btn;
     });
 
-    const titleKey = id === null ? 'all' : id;
     const titleEl = document.getElementById('shop-title');
     const subtitleEl = document.getElementById('shop-subtitle');
-    if (titleEl) titleEl.textContent = matchedBtn ? matchedBtn.dataset.catName : 'Tous nos produits';
-    if (subtitleEl) {
-      subtitleEl.textContent = this.CATEGORY_SUBTITLES[titleKey] || this._subcategoryNamesFor(titleKey);
+    if (!titleEl && !subtitleEl) return;
+
+    let title = 'Tous nos produits';
+    let subtitle = '';
+
+    if (id === 'selection' || id === null) {
+      const key = id === null ? 'all' : 'selection';
+      title = matchedBtn ? matchedBtn.dataset.catName : title;
+      subtitle = this.CATEGORY_SUBTITLES[key] || '';
+    } else {
+      const tree = (typeof Store !== 'undefined' && Store.categories) || [];
+      const path = this._findCategoryPath(tree, id);
+      if (path && path.length) {
+        title = path[0].name;
+        subtitle = path.length > 1 ? path.slice(1).map(n => n.name).join(' / ') : '';
+      } else if (matchedBtn) {
+        title = matchedBtn.dataset.catName;
+      }
     }
+
+    if (titleEl) titleEl.textContent = title;
+    if (subtitleEl) subtitleEl.textContent = subtitle;
   },
 
   /* ── PRODUCTS ── */
