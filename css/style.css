@@ -334,6 +334,28 @@ hr.divider {
   font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em;
 }
 
+.pagination {
+  max-width: 1400px; margin: 0 auto;
+  padding: 40px 40px 0;
+  display: flex; align-items: center; justify-content: center; gap: 24px;
+}
+.pagination-btn {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  background: transparent; border: 1px solid rgba(var(--ink-rgb),0.2);
+  color: var(--ink); padding: 10px 20px; cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, opacity 0.2s;
+}
+.pagination-btn:hover:not(:disabled) { border-color: rgba(var(--ink-rgb),0.5); background: var(--mist); }
+.pagination-btn:disabled { opacity: 0.3; cursor: default; }
+.pagination-label {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em;
+  color: rgba(var(--ink-rgb),0.5); white-space: nowrap;
+}
+@media (max-width: 480px) {
+  .pagination { padding: 28px 14px 0; gap: 12px; }
+  .pagination-btn { padding: 9px 14px; font-size: 10px; }
+}
+
 /* ── PRODUCT CARD ──────────────────────────────────── */
 .product-card { position: relative; cursor: pointer; }
 .product-card.out-of-stock { opacity: 0.4; }
