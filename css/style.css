@@ -137,7 +137,7 @@ header {
 [data-theme="dark"] .header-logo-img.logo-day { display: none; }
 [data-theme="dark"] .header-logo-img.logo-night { display: block; }
 .nav-menu {
-  display: none; flex-direction: row; align-items: center; justify-content: space-between; gap: 28px;
+  display: none; flex-direction: column;
   position: absolute; top: 64px; left: 40px; right: auto;
   width: auto; min-width: 240px;
   background: rgba(var(--bg-rgb), 0.98);
@@ -153,10 +153,6 @@ header {
   color: rgba(var(--ink-rgb), 0.6); padding: 6px 0;
 }
 .nav-menu a:hover { color: var(--ink); }
-.nav-menu-logo { height: 28px; width: auto; display: none; flex-shrink: 0; }
-.nav-menu-logo.logo-day { display: block; }
-[data-theme="dark"] .nav-menu-logo.logo-day { display: none; }
-[data-theme="dark"] .nav-menu-logo.logo-night { display: block; }
 .header-right { justify-self: end; display: flex; align-items: center; gap: 16px; }
 .theme-toggle {
   display: flex; align-items: center; justify-content: center;
@@ -209,7 +205,7 @@ header {
 }
 .hero-title-row { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; }
 .hero-title-row .hero-title { margin-bottom: 0; }
-.hero-title-logo { height: 44px; width: auto; display: none; flex-shrink: 0; }
+.hero-title-logo { height: 176px; width: auto; display: none; flex-shrink: 0; }
 .hero-title-logo.logo-day { display: block; }
 [data-theme="dark"] .hero-title-logo.logo-day { display: none; }
 [data-theme="dark"] .hero-title-logo.logo-night { display: block; }
@@ -277,7 +273,11 @@ header {
   max-width: 1400px; margin: 0 auto;
 }
 .section-title { font-family: var(--hand); font-weight: 700; color: var(--accent); font-size: clamp(34px,4vw,50px); line-height: 1; }
-.section-header-shop { display: block; padding-bottom: 24px; }
+.section-header-shop { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-bottom: 24px; }
+.section-header-shop-logo { height: 112px; width: auto; display: none; flex-shrink: 0; }
+.section-header-shop-logo.logo-day { display: block; }
+[data-theme="dark"] .section-header-shop-logo.logo-day { display: none; }
+[data-theme="dark"] .section-header-shop-logo.logo-night { display: block; }
 .section-title-cat {
   font-family: var(--hand); font-weight: 700; color: var(--accent);
   font-size: clamp(34px, 4.2vw, 54px); line-height: 1; letter-spacing: 0.01em;
@@ -648,7 +648,7 @@ hr.divider {
 
 .reviews-cta { text-align: center; }
 .section-logo-mark { display: flex; justify-content: center; padding: 32px 0; }
-.section-logo-mark-img { height: 40px; width: auto; display: none; }
+.section-logo-mark-img { height: 160px; width: auto; display: none; }
 .section-logo-mark-img.logo-day { display: block; }
 [data-theme="dark"] .section-logo-mark-img.logo-day { display: none; }
 [data-theme="dark"] .section-logo-mark-img.logo-night { display: block; }
