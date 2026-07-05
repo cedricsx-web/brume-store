@@ -170,14 +170,72 @@ const UI = {
   },
 
   /* ── PRODUCTS ── */
+  // ── PAGINATION ──
+  // 12 produits/page sur ordinateur, 10 sur téléphone (seuil 700px, cohérent
+  // avec le reste du site). Se réinitialise à la page 1 à chaque nouveau
+  // filtre (catégorie/sélection changée) car renderProducts() est le point
+  // d'entrée unique appelé par Store à chaque changement de filtre.
+  _pageState: { products: [], stock: {}, page: 1 },
+
+  _pageSize() {
+    return window.innerWidth <= 700 ? 10 : 12;
+  },
+
   renderProducts(products, stock) {
+    this._pageState = { products, stock, page: 1 };
+    this._renderProductsPage();
+  },
+
+  _renderProductsPage() {
     const grid = document.getElementById('products-grid');
+    const pager = document.getElementById('products-pagination');
+    const { products, stock } = this._pageState;
+
     grid.innerHTML = '';
+    if (pager) pager.innerHTML = '';
+
     if (!products.length) {
       grid.innerHTML = '<p class="no-products">Aucun produit dans cette catégorie.</p>';
       return;
     }
-    products.forEach(p => grid.appendChild(this._productCard(p, stock[p.product_id] ?? 99)));
+
+    const pageSize = this._pageSize();
+    const totalPages = Math.max(1, Math.ceil(products.length / pageSize));
+    if (this._pageState.page > totalPages) this._pageState.page = totalPages;
+    const page = this._pageState.page;
+
+    const start = (page - 1) * pageSize;
+    const pageProducts = products.slice(start, start + pageSize);
+    pageProducts.forEach(p => grid.appendChild(this._productCard(p, stock[p.product_id] ?? 99)));
+
+    if (pager && totalPages > 1) this._renderPagination(pager, page, totalPages);
+  },
+
+  _renderPagination(pager, page, totalPages) {
+    const goTo = (n) => {
+      this._pageState.page = Math.min(Math.max(1, n), totalPages);
+      this._renderProductsPage();
+      document.getElementById('boutique')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    const prev = document.createElement('button');
+    prev.className = 'pagination-btn pagination-prev';
+    prev.textContent = '← Précédent';
+    prev.disabled = page === 1;
+    prev.addEventListener('click', () => goTo(page - 1));
+    pager.appendChild(prev);
+
+    const label = document.createElement('span');
+    label.className = 'pagination-label';
+    label.textContent = `Page ${page} / ${totalPages}`;
+    pager.appendChild(label);
+
+    const next = document.createElement('button');
+    next.className = 'pagination-btn pagination-next';
+    next.textContent = 'Suivant →';
+    next.disabled = page === totalPages;
+    next.addEventListener('click', () => goTo(page + 1));
+    pager.appendChild(next);
   },
 
   _productCard(p, qty) {
@@ -442,3 +500,17 @@ function formatDescription(text) {
 
   return html || '<p class="desc-empty">Aucune description disponible.</p>';
 }
+
+// Recalcule la pagination si on franchit le seuil mobile/ordinateur (700px) —
+// ex. rotation de téléphone ou redimensionnement de fenêtre.
+let _lastPageSize = window.innerWidth <= 700 ? 10 : 12;
+window.addEventListener('resize', () => {
+  clearTimeout(window._pageResizeTimer);
+  window._pageResizeTimer = setTimeout(() => {
+    const size = window.innerWidth <= 700 ? 10 : 12;
+    if (size !== _lastPageSize) {
+      _lastPageSize = size;
+      if (UI._pageState.products.length) UI._renderProductsPage();
+    }
+  }, 200);
+});
