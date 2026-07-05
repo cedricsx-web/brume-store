@@ -746,6 +746,7 @@ footer { background: var(--bg); border-top: 1px solid var(--light-mist); padding
   footer { padding: 48px 20px 28px; }
   #cart-panel { width: 100vw; }
   .histoires-grid { grid-template-columns: 1fr 1fr; padding: 0 20px; gap: 14px; }
+  .histoire-card:nth-child(3) { display: none; }
 }
 @media (max-width: 480px) {
   #products-grid { grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 14px; }
@@ -976,7 +977,13 @@ footer { background: var(--bg); border-top: 1px solid var(--light-mist); padding
 /* Mobile modal */
 @media (max-width: 700px) {
   .modal-inner { grid-template-columns: 1fr; }
-  .modal-img-wrap { aspect-ratio: 16/10; min-height: 140px; max-height: 28vh; max-height: 28dvh; }
+  .modal-img-wrap { aspect-ratio: auto; width: 100%; min-height: 180px; max-height: 55vh; max-height: 55dvh; }
+  .modal-img-wrap .modal-add {
+    position: absolute; bottom: 0; left: 0; right: 0; z-index: 5;
+    width: 100%; padding: 14px;
+    background: rgba(46,74,140,0.88); backdrop-filter: blur(6px);
+    border-radius: 0;
+  }
   .modal-info { padding: 18px 20px 22px; gap: 10px; }
   #product-modal {
     width: 92vw;
