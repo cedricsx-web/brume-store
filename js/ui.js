@@ -118,6 +118,16 @@ const UI = {
     return null;
   },
 
+  // Échappe le HTML puis met le dernier mot du titre en couleur or (--sand),
+  // comme pour "boutique" dans le titre du hero.
+  _goldLastWord(text) {
+    const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const words = text.trim().split(' ');
+    if (words.length <= 1) return esc(text);
+    const last = words.pop();
+    return `${esc(words.join(' '))} <em>${esc(last)}</em>`;
+  },
+
   setActiveCategory(id) {
     let matchedBtn = null;
     document.querySelectorAll('.cat-btn').forEach(btn => {
@@ -155,7 +165,7 @@ const UI = {
       }
     }
 
-    if (titleEl) titleEl.textContent = title;
+    if (titleEl) titleEl.innerHTML = this._goldLastWord(title);
     if (subtitleEl) subtitleEl.textContent = subtitle;
   },
 
