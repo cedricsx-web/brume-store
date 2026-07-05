@@ -38,7 +38,7 @@ const Store = {
       this.products   = cache.products;
       this.categories = cache.categories;
       UI.renderCategories(this.categories);
-      UI.renderProducts(this._homeSelection(this.products, this.categories), this.stock);
+      UI.renderProducts(this._homeSelection(this.products, this.categories, this.stock), this.stock);
       UI.setActiveCategory('selection');
       this._hydrateCartFromIds();
       this.renderCart();
@@ -61,7 +61,7 @@ const Store = {
       UI.renderCategories(categories);
       // Only re-render products if user hasn't navigated away from selection
       if (this.activeCategory === 'selection' || this.activeCategory === null) {
-        UI.renderProducts(this._homeSelection(products, categories), stock);
+        UI.renderProducts(this._homeSelection(products, categories, stock), stock);
         this.activeCategory = 'selection';
       } else {
         this.filterByCategory(this.activeCategory);
@@ -125,7 +125,7 @@ const Store = {
   },
 
   // Build a curated homepage selection: 1 product per root category, max 8 total
-  _homeSelection(products, categories) {
+  _homeSelection(products, categories, stock) {
     const selected = [];
     const seen = new Set();
 
@@ -145,7 +145,10 @@ const Store = {
 
       if (catProducts.length === 0) continue;
 
-      addProduct(catProducts[0]);
+      // Préfère un produit en stock ; si toute la catégorie est en rupture,
+      // on retombe sur le premier produit trouvé plutôt que de sauter la catégorie.
+      const inStock = catProducts.find(p => (stock?.[p.product_id] ?? 99) > 0);
+      addProduct(inStock || catProducts[0]);
     }
 
     return selected.slice(0, 8);
@@ -153,7 +156,7 @@ const Store = {
 
   filterBySelection() {
     this.activeCategory = 'selection';
-    const filtered = this._homeSelection(this.products, this.categories);
+    const filtered = this._homeSelection(this.products, this.categories, this.stock);
     UI.renderProducts(filtered, this.stock);
     UI.setActiveCategory('selection');
   },
