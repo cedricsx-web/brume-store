@@ -28,6 +28,18 @@ const UI = {
     allBtn.addEventListener('click', () => Store.filterByCategory(null));
     nav.appendChild(allBtn);
 
+    // Bouton Soldes — masqué par défaut ; affiché par Store.init() uniquement
+    // s'il existe au moins un produit avec un prix remisé (product_discount_price).
+    const soldesBtn = document.createElement('button');
+    soldesBtn.id = 'cat-btn-soldes';
+    soldesBtn.className = 'cat-btn cat-btn-soldes';
+    soldesBtn.dataset.catId = 'soldes';
+    soldesBtn.dataset.catName = 'Soldes';
+    soldesBtn.textContent = 'Soldes';
+    soldesBtn.style.display = 'none';
+    soldesBtn.addEventListener('click', () => Store.filterBySoldes());
+    nav.appendChild(soldesBtn);
+
     tree.forEach(cat => nav.appendChild(this._catItem(cat, 0)));
 
     // Wire header nav links to Sélection du mois
@@ -93,15 +105,28 @@ const UI = {
     return wrapper;
   },
 
-  // Sous-titres fixes pour les 2 entrées spéciales du nav.
-  // Pour toutes les autres rubriques, titre/sous-titre sont calculés à partir
-  // du CHEMIN dans l'arbre (voir _findCategoryPath ci-dessous) :
+  // Titres/sous-titres par défaut pour les 3 vues spéciales du nav (Tous les
+  // produits, Sélection du mois, Soldes). Surchargeables depuis l'admin
+  // (onglet Accueil → Boutique) via Store.config.shop_<clé>_titre / _soustitre.
+  // Pour toutes les autres rubriques (vraies catégories Hiboutik), titre/
+  // sous-titre sont calculés à partir du CHEMIN dans l'arbre (voir
+  // _findCategoryPath ci-dessous) :
   //  - catégorie de premier niveau sélectionnée -> titre = son nom, pas de sous-titre
   //  - sous-rubrique sélectionnée -> titre = rubrique principale (racine),
   //    sous-titre = chemin jusqu'à la sous-rubrique choisie (ex. "Cartes / Japon")
-  CATEGORY_SUBTITLES: {
-    all: 'Objets rares, pièces choisies',
-    selection: 'Nos coups de cœur du moment',
+  _SHOP_HEADER_DEFAULTS: {
+    all:       { titre: 'Tous nos produits', soustitre: 'Objets rares, pièces choisies' },
+    selection: { titre: 'Sélection du mois', soustitre: 'Nos coups de cœur du moment' },
+    soldes:    { titre: 'Soldes',            soustitre: 'Nos meilleures réductions du moment' },
+  },
+
+  _shopHeader(key) {
+    const cfg = (typeof Store !== 'undefined' && Store.config) || {};
+    const d = this._SHOP_HEADER_DEFAULTS[key];
+    return {
+      titre: cfg[`shop_${key}_titre`] || d.titre,
+      soustitre: cfg[`shop_${key}_soustitre`] || d.soustitre,
+    };
   },
 
   // Cherche un noeud par id dans l'arbre de catégories et renvoie le chemin
@@ -134,6 +159,8 @@ const UI = {
       let active;
       if (id === 'selection') {
         active = btn.dataset.catId === 'selection';
+      } else if (id === 'soldes') {
+        active = btn.dataset.catId === 'soldes';
       } else if (id === null) {
         active = btn.dataset.catId === 'all';
       } else {
@@ -150,10 +177,11 @@ const UI = {
     let title = 'Tous nos produits';
     let subtitle = '';
 
-    if (id === 'selection' || id === null) {
-      const key = id === null ? 'all' : 'selection';
-      title = matchedBtn ? matchedBtn.dataset.catName : title;
-      subtitle = this.CATEGORY_SUBTITLES[key] || '';
+    if (id === 'selection' || id === null || id === 'soldes') {
+      const key = id === 'selection' ? 'selection' : id === 'soldes' ? 'soldes' : 'all';
+      const h = this._shopHeader(key);
+      title = h.titre;
+      subtitle = h.soustitre;
     } else {
       const tree = (typeof Store !== 'undefined' && Store.categories) || [];
       const path = this._findCategoryPath(tree, id);
@@ -314,7 +342,8 @@ const UI = {
 
   _productCard(p, qty) {
     const price = parseFloat(p.product_price);
-    const sale  = p.product_discount_price ? parseFloat(p.product_discount_price) : null;
+    const discRaw = p.product_discount_price ? parseFloat(p.product_discount_price) : null;
+    const sale  = (discRaw != null && !isNaN(discRaw) && discRaw < price) ? discRaw : null;
     const oos   = qty === 0;
 
     const card = document.createElement('div');
@@ -328,7 +357,7 @@ const UI = {
           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
         <div class="product-img-placeholder" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;background:${getFallbackGradient(p.product_id)};font-size:32px;color:rgba(var(--ink-rgb),0.15);font-family:var(--serif);letter-spacing:0.08em;font-weight:300;">Brüme</div>
         ${p.tag === 'new'  ? '<span class="product-badge">Nouveau</span>' : ''}
-        ${p.tag === 'sale' ? '<span class="product-badge sale">Soldes</span>'  : ''}
+        ${sale ? '<span class="product-badge sale">Soldes</span>'  : ''}
         ${oos              ? '<span class="product-badge oos">Rupture</span>'  : ''}
         <div class="product-overlay">
           <button class="product-overlay-btn view-btn" data-id="${p.product_id}">
@@ -364,7 +393,8 @@ const UI = {
   /* ── PRODUCT MODAL ── */
   openModal(p, qty) {
     const price = parseFloat(p.product_price);
-    const sale  = p.product_discount_price ? parseFloat(p.product_discount_price) : null;
+    const discRaw = p.product_discount_price ? parseFloat(p.product_discount_price) : null;
+    const sale  = (discRaw != null && !isNaN(discRaw) && discRaw < price) ? discRaw : null;
     const oos   = qty === 0;
 
     document.getElementById('modal-img').src = `https://brumeconceptstore.hiboutik.com/myshop/images/?img=big_${p.product_id}-1.jpg`;

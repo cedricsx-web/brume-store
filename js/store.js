@@ -5,6 +5,7 @@ const Store = {
   cart: [],
   activeCategory: null,
   stopStockSync: null,
+  config: {},  // contenu éditorial (Airtable "accueil") : hero, notre histoire, titres de boutique
 
   // ── CACHE CONFIG ──
   _CACHE_KEY: 'brume_catalog',
@@ -47,18 +48,34 @@ const Store = {
 
     // 2) Fetch fresh data (in parallel)
     try {
-      const [products, categories, stock] = await Promise.all([
+      const [products, categories, stock, config] = await Promise.all([
         API.getProducts(),
         API.getCategories(),
-        API.getStock()
+        API.getStock(),
+        (typeof getAccueil === 'function' ? getAccueil() : Promise.resolve(null))
       ]);
       this.products   = products;
       this.categories = categories;
       this.stock      = stock;
+      this.config      = config || {};
       this._saveCache(products, categories);
 
       // Re-render with fresh data (instant — data already in memory)
       UI.renderCategories(categories);
+
+      // Bouton "Soldes" + bannière promo — visibles uniquement s'il existe au
+      // moins un produit avec un prix remisé (product_discount_price) inférieur
+      // au prix normal. Remplace l'ancien champ mock `tag: 'sale'` (sans effet
+      // en production, voir js/mock-data.js) par le vrai champ Hiboutik.
+      const hasSoldes = products.some(p => this._hasDiscount(p));
+      const soldesBtn = document.getElementById('cat-btn-soldes');
+      if (soldesBtn) soldesBtn.style.display = hasSoldes ? '' : 'none';
+
+      const banner = document.getElementById('promo-banner');
+      const divider = document.getElementById('promo-divider');
+      if (banner) banner.style.display = hasSoldes ? '' : 'none';
+      if (divider) divider.style.display = hasSoldes ? '' : 'none';
+
       // Only re-render products if user hasn't navigated away from selection
       if (this.activeCategory === 'selection' || this.activeCategory === null) {
         UI.renderProducts(this._homeSelection(products, categories, stock), stock);
@@ -71,12 +88,11 @@ const Store = {
       this._hydrateCartFromIds();
       this.renderCart();
 
-      const hasSale = products.some(p => p.tag === 'sale');
-      const banner = document.getElementById('promo-banner');
-      const divider = document.getElementById('promo-divider');
-      if (banner) banner.style.display = hasSale ? '' : 'none';
-      if (divider) divider.style.display = hasSale ? '' : 'none';
       this.stopStockSync = startStockSync(this.onStockUpdate.bind(this));
+
+      // Applique le contenu Hero / Notre histoire / Éditions depuis Airtable,
+      // maintenant que la config est disponible (voir index.html).
+      if (typeof applyAccueilContent === 'function') applyAccueilContent(this.config);
     } catch (err) {
       console.error('Store init error:', err);
       // If we had no cache either, show error
@@ -262,11 +278,19 @@ const Store = {
     UI.renderCart(this.cart, this.getTotal(), this.getItemCount());
   },
 
-  filterBySale() {
-    this.activeCategory = 'sale';
-    const filtered = this.products.filter(p => p.tag === 'sale');
+  // Un produit est "en soldes" si son prix remisé (Hiboutik : product_discount_price)
+  // est renseigné et strictement inférieur au prix normal.
+  _hasDiscount(p) {
+    const price = parseFloat(p.product_price);
+    const disc  = p.product_discount_price ? parseFloat(p.product_discount_price) : null;
+    return disc != null && !isNaN(disc) && !isNaN(price) && disc < price;
+  },
+
+  filterBySoldes() {
+    this.activeCategory = 'soldes';
+    const filtered = this.products.filter(p => this._hasDiscount(p));
     UI.renderProducts(filtered, this.stock);
-    UI.setActiveCategory(null);
+    UI.setActiveCategory('soldes');
   },
 
   async checkout() {
