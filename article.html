@@ -42,12 +42,21 @@
   }
   body { background: var(--bg); color: var(--ink); font-family: 'DM Sans', sans-serif; font-weight: 300; -webkit-font-smoothing: antialiased; }
 
-  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 20px 40px; background: var(--bg); border-bottom: 1px solid rgba(var(--ink-rgb),.1); }
-  .nav-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 400; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); text-decoration: none; }
-  .nav-links { display: flex; gap: 32px; }
-  .nav-links a { font-family: 'Space Mono', monospace; font-size: .65rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); text-decoration: none; opacity: .7; transition: opacity .2s; }
-  .nav-links a:hover { opacity: 1; }
-  .cart-link { display: inline-flex; align-items: center; gap: 6px; }
+  header { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 40px; height: 64px; background: rgba(var(--bg-rgb),.92); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(var(--ink-rgb),.1); }
+  .hamburger-btn { justify-self: start; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; background: transparent; border: none; color: var(--ink); cursor: pointer; }
+  .header-logo { justify-self: center; display: flex; align-items: center; }
+  .header-logo-img { height: 40px; width: auto; display: none; }
+  .header-logo-img.logo-day { display: block; }
+  [data-theme="dark"] .header-logo-img.logo-day { display: none; }
+  [data-theme="dark"] .header-logo-img.logo-night { display: block; }
+  .header-right { justify-self: end; display: flex; align-items: center; gap: 20px; }
+  .nav-menu { display: none; flex-direction: column; position: absolute; top: 64px; left: 40px; right: auto; width: auto; min-width: 200px; background: rgba(var(--bg-rgb),.98); backdrop-filter: blur(12px); border: 1px solid rgba(var(--ink-rgb),.1); border-radius: 4px; padding: 16px 24px; }
+  .nav-menu.open { display: flex; }
+  .nav-menu-links { display: flex; flex-direction: column; gap: 2px; }
+  .nav-menu a { font-family: 'Space Mono', monospace; font-size: .65rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); text-decoration: none; opacity: .7; padding: 6px 0; transition: opacity .2s; }
+  .nav-menu a:hover { opacity: 1; }
+  .cart-link { display: inline-flex; align-items: center; gap: 6px; font-family: 'Space Mono', monospace; font-size: .65rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); text-decoration: none; opacity: .7; transition: opacity .2s; }
+  .cart-link:hover { opacity: 1; }
   #cart-badge { background: var(--accent); color: var(--on-accent); font-size: .6rem; padding: 1px 6px; border-radius: 10px; display: none; }
   #cart-badge.visible { display: inline-block; }
   .theme-toggle {
@@ -247,7 +256,7 @@
   }
 
   @media (max-width: 768px) {
-    nav { padding: 16px 20px; }
+    header { padding: 0 20px; }
     .article-header { padding: 90px 20px 0; }
     .article-body { padding: 40px 20px 60px; }
     .related-grid { grid-template-columns: 1fr 1fr; }
@@ -283,11 +292,21 @@
   </div>
 </div>
 
-<nav>
-  <a href="index.html" class="nav-logo">BrüMe</a>
-  <div class="nav-links">
-    <a href="index.html">Boutique</a>
-    <a href="editions.html">Éditions</a>
+<header>
+  <button class="hamburger-btn" id="hamburger-btn" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav-menu">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+
+  <a href="index.html" class="header-logo" aria-label="Brüme Concept Store">
+    <img src="img/brume-logo-blue.svg" alt="Brüme Concept Store" class="header-logo-img logo-day" />
+    <img src="img/brume-logo-white.svg" alt="Brüme Concept Store" class="header-logo-img logo-night" />
+  </a>
+
+  <div class="header-right">
     <a href="#" id="cart-link" class="cart-link" onclick="event.preventDefault(); openCartPanel()">Panier <span id="cart-badge"></span></a>
     <button class="theme-toggle" id="theme-toggle" aria-label="Changer de thème jour/nuit">
       <svg class="icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -299,7 +318,14 @@
       </svg>
     </button>
   </div>
-</nav>
+</header>
+
+<div class="nav-menu" id="nav-menu" aria-label="Menu principal">
+  <div class="nav-menu-links">
+    <a href="index.html">Boutique</a>
+    <a href="editions.html">Éditions</a>
+  </div>
+</div>
 
 <div id="content">
   <div class="loading">

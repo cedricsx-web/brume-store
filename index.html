@@ -132,8 +132,6 @@
       <a href="#boutique" id="nav-selection">Sélection du mois</a>
       <a href="#about">Notre histoire</a>
     </div>
-    <img src="img/brume-logo-blue.svg" alt="" aria-hidden="true" class="nav-menu-logo logo-day" />
-    <img src="img/brume-logo-white.svg" alt="" aria-hidden="true" class="nav-menu-logo logo-night" />
   </nav>
 </header>
 
@@ -171,6 +169,8 @@
       <h2 class="section-title-cat" id="shop-title">Tous nos produits</h2>
       <p class="section-subtitle-cat" id="shop-subtitle"></p>
     </div>
+    <img src="img/brume-logo-blue.svg" alt="" aria-hidden="true" class="section-header-shop-logo logo-day" />
+    <img src="img/brume-logo-white.svg" alt="" aria-hidden="true" class="section-header-shop-logo logo-night" />
   </div>
   <nav id="category-nav" aria-label="Filtrer par catégorie"></nav>
   <div id="products-grid" role="list"></div>
@@ -448,28 +448,7 @@
     Store.init().then(openProductFromUrl);
     loadHistoiresPreview();
     initReviewsCarousel();
-    initHamburgerMenu();
   });
-
-  // Menu hamburger — ouverture/fermeture, clic en dehors, lien cliqué
-  function initHamburgerMenu() {
-    const btn = document.getElementById('hamburger-btn');
-    const menu = document.getElementById('nav-menu');
-    if (!btn || !menu) return;
-
-    const close = () => { menu.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); };
-    const toggle = () => {
-      const isOpen = menu.classList.toggle('open');
-      btn.setAttribute('aria-expanded', String(isOpen));
-    };
-
-    btn.addEventListener('click', (e) => { e.stopPropagation(); toggle(); });
-    menu.querySelectorAll('a').forEach(a => a.addEventListener('click', close));
-    document.addEventListener('click', (e) => {
-      if (!menu.classList.contains('open')) return;
-      if (!menu.contains(e.target) && e.target !== btn) close();
-    });
-  }
 
   // Carousel des avis Google — défilement manuel + auto-play, sans dépendance
   function initReviewsCarousel() {
