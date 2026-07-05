@@ -171,18 +171,39 @@ const UI = {
 
   /* ── PRODUCTS ── */
   // ── PAGINATION ──
-  // 12 produits/page sur ordinateur, 10 sur téléphone (seuil 700px, cohérent
-  // avec le reste du site). Se réinitialise à la page 1 à chaque nouveau
-  // filtre (catégorie/sélection changée) car renderProducts() est le point
-  // d'entrée unique appelé par Store à chaque changement de filtre.
-  _pageState: { products: [], stock: {}, page: 1 },
+  // Par défaut : 12 produits/page sur ordinateur, 10 sur téléphone (seuil
+  // 700px). L'utilisateur peut changer ce nombre via le sélecteur (menu
+  // déroulant affiché à côté de Précédent/Suivant) : 10/20/tous sur
+  // téléphone, 12/24/48/tous sur ordinateur. Ce choix reste actif tant que
+  // la page n'est pas rechargée, y compris en changeant de catégorie —
+  // seul le numéro de page revient à 1 à chaque nouveau filtre.
+  _pageState: { products: [], stock: {}, page: 1, pageSize: null },
 
-  _pageSize() {
-    return window.innerWidth <= 700 ? 10 : 12;
+  _isMobile() {
+    return window.innerWidth <= 700;
+  },
+
+  _defaultPageSize() {
+    return this._isMobile() ? 10 : 12;
+  },
+
+  _pageSizeOptions() {
+    return this._isMobile() ? [10, 20, 'all'] : [12, 24, 48, 'all'];
+  },
+
+  // Taille effective : le choix manuel de l'utilisateur s'il existe et reste
+  // valide pour cet appareil (mobile/ordinateur), sinon la valeur par défaut.
+  _effectivePageSize() {
+    const chosen = this._pageState.pageSize;
+    if (chosen === 'all') return Infinity;
+    if (chosen && this._pageSizeOptions().includes(chosen)) return chosen;
+    return this._defaultPageSize();
   },
 
   renderProducts(products, stock) {
-    this._pageState = { products, stock, page: 1 };
+    this._pageState.products = products;
+    this._pageState.stock = stock;
+    this._pageState.page = 1;
     this._renderProductsPage();
   },
 
@@ -199,43 +220,72 @@ const UI = {
       return;
     }
 
-    const pageSize = this._pageSize();
+    const pageSize = this._effectivePageSize();
     const totalPages = Math.max(1, Math.ceil(products.length / pageSize));
     if (this._pageState.page > totalPages) this._pageState.page = totalPages;
     const page = this._pageState.page;
 
     const start = (page - 1) * pageSize;
-    const pageProducts = products.slice(start, start + pageSize);
+    const pageProducts = products.slice(start, start + (pageSize === Infinity ? products.length : pageSize));
     pageProducts.forEach(p => grid.appendChild(this._productCard(p, stock[p.product_id] ?? 99)));
 
-    if (pager && totalPages > 1) this._renderPagination(pager, page, totalPages);
+    if (pager) this._renderPagination(pager, page, totalPages, products.length);
   },
 
-  _renderPagination(pager, page, totalPages) {
+  _renderPagination(pager, page, totalPages, totalCount) {
+    const smallestOption = this._pageSizeOptions()[0];
+    // Pas la peine d'afficher le sélecteur si la catégorie a moins de
+    // produits que la plus petite option de toute façon.
+    if (totalCount <= smallestOption) return;
+
     const goTo = (n) => {
       this._pageState.page = Math.min(Math.max(1, n), totalPages);
       this._renderProductsPage();
       document.getElementById('boutique')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
-    const prev = document.createElement('button');
-    prev.className = 'pagination-btn pagination-prev';
-    prev.textContent = '← Précédent';
-    prev.disabled = page === 1;
-    prev.addEventListener('click', () => goTo(page - 1));
-    pager.appendChild(prev);
+    if (totalPages > 1) {
+      const prev = document.createElement('button');
+      prev.className = 'pagination-btn pagination-prev';
+      prev.textContent = '← Précédent';
+      prev.disabled = page === 1;
+      prev.addEventListener('click', () => goTo(page - 1));
+      pager.appendChild(prev);
 
-    const label = document.createElement('span');
-    label.className = 'pagination-label';
-    label.textContent = `Page ${page} / ${totalPages}`;
-    pager.appendChild(label);
+      const label = document.createElement('span');
+      label.className = 'pagination-label';
+      label.textContent = `Page ${page} / ${totalPages}`;
+      pager.appendChild(label);
 
-    const next = document.createElement('button');
-    next.className = 'pagination-btn pagination-next';
-    next.textContent = 'Suivant →';
-    next.disabled = page === totalPages;
-    next.addEventListener('click', () => goTo(page + 1));
-    pager.appendChild(next);
+      const next = document.createElement('button');
+      next.className = 'pagination-btn pagination-next';
+      next.textContent = 'Suivant →';
+      next.disabled = page === totalPages;
+      next.addEventListener('click', () => goTo(page + 1));
+      pager.appendChild(next);
+    }
+
+    // Sélecteur du nombre de produits par page
+    const sizeWrap = document.createElement('label');
+    sizeWrap.className = 'pagination-size';
+    sizeWrap.textContent = 'Afficher ';
+    const select = document.createElement('select');
+    select.setAttribute('aria-label', 'Nombre de produits par page');
+    this._pageSizeOptions().forEach(opt => {
+      const o = document.createElement('option');
+      o.value = opt;
+      o.textContent = opt === 'all' ? 'tous' : opt;
+      if ((this._pageState.pageSize || this._defaultPageSize()) === opt) o.selected = true;
+      select.appendChild(o);
+    });
+    select.addEventListener('change', () => {
+      const val = select.value === 'all' ? 'all' : parseInt(select.value, 10);
+      this._pageState.pageSize = val;
+      this._pageState.page = 1;
+      this._renderProductsPage();
+    });
+    sizeWrap.appendChild(select);
+    pager.appendChild(sizeWrap);
   },
 
   _productCard(p, qty) {
@@ -501,15 +551,16 @@ function formatDescription(text) {
   return html || '<p class="desc-empty">Aucune description disponible.</p>';
 }
 
-// Recalcule la pagination si on franchit le seuil mobile/ordinateur (700px) —
-// ex. rotation de téléphone ou redimensionnement de fenêtre.
-let _lastPageSize = window.innerWidth <= 700 ? 10 : 12;
+// Recalcule la pagination (tranche + options du sélecteur) si on franchit
+// le seuil mobile/ordinateur (700px) — ex. rotation de téléphone ou
+// redimensionnement de fenêtre.
+let _wasMobile = window.innerWidth <= 700;
 window.addEventListener('resize', () => {
   clearTimeout(window._pageResizeTimer);
   window._pageResizeTimer = setTimeout(() => {
-    const size = window.innerWidth <= 700 ? 10 : 12;
-    if (size !== _lastPageSize) {
-      _lastPageSize = size;
+    const isMobile = window.innerWidth <= 700;
+    if (isMobile !== _wasMobile) {
+      _wasMobile = isMobile;
       if (UI._pageState.products.length) UI._renderProductsPage();
     }
   }, 200);
