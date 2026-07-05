@@ -546,7 +546,7 @@
     if (!grid) return;
     try {
       const articles = await getArticles();
-      const preview = articles.slice(0, 2);
+      const preview = articles.slice(0, 3);
       if (!preview.length) {
         document.getElementById('histoires-preview').style.display = 'none';
         return;
