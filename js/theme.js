@@ -43,6 +43,28 @@ const Theme = {
     // ici on ne fait que brancher le bouton.
     const btn = document.getElementById('theme-toggle');
     if (btn) btn.addEventListener('click', () => this.toggle());
+    this._initHamburgerMenu();
+  },
+
+  // Menu hamburger — partagé par toutes les pages qui ont #hamburger-btn/#nav-menu.
+  // Ouverture/fermeture, clic en dehors, lien cliqué.
+  _initHamburgerMenu() {
+    const hbtn = document.getElementById('hamburger-btn');
+    const menu = document.getElementById('nav-menu');
+    if (!hbtn || !menu) return;
+
+    const close = () => { menu.classList.remove('open'); hbtn.setAttribute('aria-expanded', 'false'); };
+    const toggle = () => {
+      const isOpen = menu.classList.toggle('open');
+      hbtn.setAttribute('aria-expanded', String(isOpen));
+    };
+
+    hbtn.addEventListener('click', (e) => { e.stopPropagation(); toggle(); });
+    menu.querySelectorAll('a').forEach(a => a.addEventListener('click', close));
+    document.addEventListener('click', (e) => {
+      if (!menu.classList.contains('open')) return;
+      if (!menu.contains(e.target) && e.target !== hbtn) close();
+    });
   }
 };
 
