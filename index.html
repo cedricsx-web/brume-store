@@ -138,13 +138,13 @@
 <!-- HERO -->
 <section class="hero">
   <div class="hero-text-panel">
-    <p class="hero-eyebrow">Concept Store · Cachan, France</p>
+    <p class="hero-eyebrow" id="hero-eyebrow">Concept Store · Cachan, France</p>
     <div class="hero-title-row">
-      <h1 class="hero-title">Entre galerie<br>et <em>boutique</em></h1>
+      <h1 class="hero-title" id="hero-title">Entre galerie<br>et <em id="hero-title-em">boutique</em></h1>
       <img src="img/brume-logo-blue.svg" alt="" aria-hidden="true" class="hero-title-logo logo-day" />
       <img src="img/brume-logo-white.svg" alt="" aria-hidden="true" class="hero-title-logo logo-night" />
     </div>
-    <p class="hero-desc">
+    <p class="hero-desc" id="hero-desc">
       Chez BrüMe, chaque objet est choisi pour sa capacité à transformer un espace.
       Des pièces de décoration, de l'outillage élégant, et des trouvailles du quotidien.
     </p>
@@ -157,8 +157,8 @@
     </div>
   </div>
   <div class="hero-image-panel">
-    <img src="img/hero.jpg" alt="Brüme Concept Store" />
-    <span class="hero-image-label">Collection Printemps 2025</span>
+    <img src="img/hero.jpg" alt="Brüme Concept Store" id="hero-image" />
+    <span class="hero-image-label" id="hero-image-legende">Collection Printemps 2025</span>
   </div>
 </section>
 
@@ -191,13 +191,13 @@
 <section class="editorial" id="about">
   <div class="editorial-inner">
     <div class="editorial-image">
-      <img src="img/editorial.jpg" alt="Brüme - Notre histoire" />
+      <img src="img/editorial.jpg" alt="Brüme - Notre histoire" id="histoire-image" />
     </div>
     <div class="editorial-text">
-      <p class="eyebrow">Notre histoire</p>
-      <h2>Un lieu conçu pour <em>ralentir</em></h2>
-      <p>BrüMe est née d'une envie simple : créer un endroit où l'on prend le temps de toucher, de sentir, de choisir. Des objets fabriqués avec soin, souvent en petite série, par des artisans qui ont encore quelque chose à dire.</p>
-      <p>La boutique de Cachan est ouverte depuis 2021. La boutique en ligne est le prolongement naturel de cet espace — même sélection, même exigence.</p>
+      <p class="eyebrow" id="histoire-eyebrow">Notre histoire</p>
+      <h2 id="histoire-titre">Un lieu conçu pour <em id="histoire-titre-em">ralentir</em></h2>
+      <p id="histoire-p1">BrüMe est née d'une envie simple : créer un endroit où l'on prend le temps de toucher, de sentir, de choisir. Des objets fabriqués avec soin, souvent en petite série, par des artisans qui ont encore quelque chose à dire.</p>
+      <p id="histoire-p2">La boutique de Cachan est ouverte depuis 2021. La boutique en ligne est le prolongement naturel de cet espace — même sélection, même exigence.</p>
       <a href="#boutique" class="btn-primary">Découvrir la boutique →</a>
     </div>
   </div>
@@ -450,7 +450,52 @@
     Store.init().then(openProductFromUrl);
     loadHistoiresPreview();
     initReviewsCarousel();
+    loadAccueilContent();
   });
+
+  // Charge le contenu hero + notre histoire depuis Airtable et l'injecte
+  // par-dessus le HTML statique. Si aucune ligne n'existe ou en cas d'erreur,
+  // le contenu HTML déjà présent dans la page reste affiché tel quel (fallback).
+  async function loadAccueilContent() {
+    try {
+      const c = await getAccueil();
+      if (!c) return;
+
+      const setText = (id, value) => {
+        if (value == null || value === '') return;
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+      };
+      const setImg = (id, value) => {
+        if (!value) return;
+        const el = document.getElementById(id);
+        if (el) el.src = value;
+      };
+
+      setText('hero-eyebrow', c.hero_eyebrow);
+      setText('hero-title', c.hero_titre); // remplace tout le H1, y compris <em>, si renseigné
+      if (c.hero_titre && c.hero_titre_em) {
+        // Si titre ET emphase sont fournis séparément, recomposer proprement
+        document.getElementById('hero-title').innerHTML =
+          `${c.hero_titre}<br><em>${c.hero_titre_em}</em>`;
+      }
+      setText('hero-desc', c.hero_description);
+      setImg('hero-image', c.hero_image_url);
+      setText('hero-image-legende', c.hero_image_legende);
+
+      setText('histoire-eyebrow', c.histoire_eyebrow);
+      if (c.histoire_titre) {
+        document.getElementById('histoire-titre').innerHTML =
+          c.histoire_titre_em ? `${c.histoire_titre}<em>${c.histoire_titre_em}</em>` : c.histoire_titre;
+      }
+      setText('histoire-p1', c.histoire_paragraphe_1);
+      setText('histoire-p2', c.histoire_paragraphe_2);
+      setImg('histoire-image', c.histoire_image_url);
+    } catch (e) {
+      console.error('loadAccueilContent error:', e);
+      // Silencieux : le HTML statique existant reste affiché.
+    }
+  }
 
   // Carousel des avis Google — défilement manuel + auto-play, sans dépendance
   function initReviewsCarousel() {

@@ -133,6 +133,9 @@
 
   /* FORM */
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+  .section-block { margin-bottom: 44px; padding-bottom: 36px; border-bottom: 1px solid rgba(var(--ink-rgb),.1); }
+  .section-block:last-of-type { border-bottom: none; }
+  .section-block-title { font-family: 'Space Mono', monospace; font-size: .62rem; letter-spacing: .16em; text-transform: uppercase; opacity: .55; margin-bottom: 20px; }
   .form-group { display: flex; flex-direction: column; gap: 8px; }
   .form-group.full { grid-column: 1 / -1; }
   label { font-family: 'Space Mono', monospace; font-size: .58rem; letter-spacing: .14em; text-transform: uppercase; color: var(--ink); opacity: .6; }
@@ -202,6 +205,7 @@
     <div class="admin-tabs">
       <button id="tab-articles" class="admin-tab active" onclick="switchTab('articles')">Éditions</button>
       <button id="tab-horaires" class="admin-tab" onclick="switchTab('horaires')">Horaires</button>
+      <button id="tab-accueil" class="admin-tab" onclick="switchTab('accueil')">Accueil</button>
     </div>
 
     <!-- ONGLET ARTICLES -->
@@ -219,6 +223,14 @@
       <div class="sidebar-section">Mois enregistrés</div>
       <div class="article-list" id="horaires-list">
         <div style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--sand);opacity:.4;padding:12px 0;">Chargement…</div>
+      </div>
+    </div>
+
+    <!-- ONGLET ACCUEIL -->
+    <div id="panel-accueil" style="display:none;">
+      <div class="sidebar-section">Page d'accueil</div>
+      <div style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--sand);opacity:.5;line-height:1.6;padding:4px 0 12px;">
+        Le texte et les images des sections « Hero » et « Notre histoire » de la page d'accueil.
       </div>
     </div>
 
@@ -255,6 +267,7 @@ let articles = []
 let currentTab = 'articles'
 let currentHorairesId = null
 let horairesEntries = []
+let currentAccueilId = null
 
 // ── INIT ──
 ;(async () => {
@@ -267,13 +280,17 @@ function switchTab(tab) {
   currentTab = tab
   document.getElementById('tab-articles').classList.toggle('active', tab === 'articles')
   document.getElementById('tab-horaires').classList.toggle('active', tab === 'horaires')
+  document.getElementById('tab-accueil').classList.toggle('active', tab === 'accueil')
   document.getElementById('panel-articles').style.display = tab === 'articles' ? '' : 'none'
   document.getElementById('panel-horaires').style.display = tab === 'horaires' ? '' : 'none'
+  document.getElementById('panel-accueil').style.display = tab === 'accueil' ? '' : 'none'
 
   if (tab === 'articles') {
     if (!currentId) document.getElementById('main').innerHTML = `<div class="empty-state"><p>Sélectionnez un article ou créez-en un nouveau.</p></div>`
-  } else {
+  } else if (tab === 'horaires') {
     loadHorairesList()
+  } else if (tab === 'accueil') {
+    loadAccueilForm()
   }
 }
 
@@ -656,8 +673,135 @@ function getCurrentArticle() {
   }
 }
 
-function previewImg(url) {
-  const el = document.getElementById('img-preview')
+// ─────────────────────────────────────
+// ONGLET ACCUEIL — contenu des sections Hero et "Notre histoire"
+// ─────────────────────────────────────
+
+async function loadAccueilForm() {
+  document.getElementById('main').innerHTML = `<div class="empty-state"><p>Chargement…</p></div>`
+  try {
+    const a = await getAccueil()
+    currentAccueilId = a?.id || null
+    renderAccueilForm(a || {})
+  } catch (e) {
+    document.getElementById('main').innerHTML =
+      `<div class="empty-state"><p style="color:var(--red)">Erreur de connexion Airtable</p></div>`
+  }
+}
+
+function renderAccueilForm(a) {
+  document.getElementById('main').innerHTML = `
+    <div class="main-header">
+      <h1 class="main-title">Page d'accueil</h1>
+      <div class="main-actions">
+        <button class="btn btn-save" onclick="saveAccueilForm()">Enregistrer</button>
+      </div>
+    </div>
+
+    <div class="section-block">
+      <h2 class="section-block-title">Hero</h2>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Eyebrow (petite ligne au-dessus du titre)</label>
+          <input id="a-hero-eyebrow" type="text" value="${esc(a.hero_eyebrow) || 'Concept Store · Cachan, France'}">
+        </div>
+        <div class="form-group">
+          <label>Titre (début)</label>
+          <input id="a-hero-titre" type="text" value="${esc(a.hero_titre) || 'Entre galerie'}" placeholder="ex : Entre galerie">
+        </div>
+        <div class="form-group">
+          <label>Titre (fin, en italique)</label>
+          <input id="a-hero-titre-em" type="text" value="${esc(a.hero_titre_em) || 'boutique'}" placeholder="ex : boutique">
+        </div>
+        <div class="form-group full">
+          <label>Description</label>
+          <textarea id="a-hero-description" rows="3">${esc(a.hero_description) || `Chez BrüMe, chaque objet est choisi pour sa capacité à transformer un espace. Des pièces de décoration, de l'outillage élégant, et des trouvailles du quotidien.`}</textarea>
+        </div>
+        <div class="form-group">
+          <label>Image hero</label>
+          <input id="a-hero-image-file" type="file" accept="image/*" onchange="handleImageUpload(this, { hidden: 'a-hero-image', preview: 'a-hero-img-preview', status: 'a-hero-upload-status' })">
+          <input type="hidden" id="a-hero-image" value="${esc(a.hero_image_url)}">
+          <div id="a-hero-img-preview">
+            ${a.hero_image_url
+              ? `<img class="preview-img" src="${esc(a.hero_image_url)}" onerror="this.style.display='none'">`
+              : `<div class="preview-img-empty"><span>Aucune image — l'image actuelle du site reste affichée</span></div>`}
+          </div>
+          <span class="field-hint" id="a-hero-upload-status"></span>
+        </div>
+        <div class="form-group">
+          <label>Légende sur l'image</label>
+          <input id="a-hero-image-legende" type="text" value="${esc(a.hero_image_legende) || 'Collection Printemps 2025'}">
+        </div>
+      </div>
+    </div>
+
+    <div class="section-block">
+      <h2 class="section-block-title">Notre histoire</h2>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Eyebrow</label>
+          <input id="a-histoire-eyebrow" type="text" value="${esc(a.histoire_eyebrow) || 'Notre histoire'}">
+        </div>
+        <div class="form-group">
+          <label>Titre (début)</label>
+          <input id="a-histoire-titre" type="text" value="${esc(a.histoire_titre) || 'Un lieu conçu pour '}" placeholder="ex : Un lieu conçu pour ">
+        </div>
+        <div class="form-group">
+          <label>Titre (fin, en italique)</label>
+          <input id="a-histoire-titre-em" type="text" value="${esc(a.histoire_titre_em) || 'ralentir'}" placeholder="ex : ralentir">
+        </div>
+        <div class="form-group full">
+          <label>Paragraphe 1</label>
+          <textarea id="a-histoire-p1" rows="3">${esc(a.histoire_paragraphe_1) || `BrüMe est née d'une envie simple : créer un endroit où l'on prend le temps de toucher, de sentir, de choisir. Des objets fabriqués avec soin, souvent en petite série, par des artisans qui ont encore quelque chose à dire.`}</textarea>
+        </div>
+        <div class="form-group full">
+          <label>Paragraphe 2</label>
+          <textarea id="a-histoire-p2" rows="3">${esc(a.histoire_paragraphe_2) || `La boutique de Cachan est ouverte depuis 2021. La boutique en ligne est le prolongement naturel de cet espace — même sélection, même exigence.`}</textarea>
+        </div>
+        <div class="form-group">
+          <label>Image "notre histoire"</label>
+          <input id="a-histoire-image-file" type="file" accept="image/*" onchange="handleImageUpload(this, { hidden: 'a-histoire-image', preview: 'a-histoire-img-preview', status: 'a-histoire-upload-status' })">
+          <input type="hidden" id="a-histoire-image" value="${esc(a.histoire_image_url)}">
+          <div id="a-histoire-img-preview">
+            ${a.histoire_image_url
+              ? `<img class="preview-img" src="${esc(a.histoire_image_url)}" onerror="this.style.display='none'">`
+              : `<div class="preview-img-empty"><span>Aucune image — l'image actuelle du site reste affichée</span></div>`}
+          </div>
+          <span class="field-hint" id="a-histoire-upload-status"></span>
+        </div>
+      </div>
+    </div>
+  `
+}
+
+async function saveAccueilForm() {
+  const fields = {
+    hero_eyebrow: document.getElementById('a-hero-eyebrow').value.trim(),
+    hero_titre: document.getElementById('a-hero-titre').value.trim(),
+    hero_titre_em: document.getElementById('a-hero-titre-em').value.trim(),
+    hero_description: document.getElementById('a-hero-description').value.trim(),
+    hero_image_url: document.getElementById('a-hero-image').value.trim(),
+    hero_image_legende: document.getElementById('a-hero-image-legende').value.trim(),
+    histoire_eyebrow: document.getElementById('a-histoire-eyebrow').value.trim(),
+    histoire_titre: document.getElementById('a-histoire-titre').value.trim(),
+    histoire_titre_em: document.getElementById('a-histoire-titre-em').value.trim(),
+    histoire_paragraphe_1: document.getElementById('a-histoire-p1').value.trim(),
+    histoire_paragraphe_2: document.getElementById('a-histoire-p2').value.trim(),
+    histoire_image_url: document.getElementById('a-histoire-image').value.trim(),
+  }
+
+  try {
+    const saved = await saveAccueil(fields, currentAccueilId)
+    if (!currentAccueilId) currentAccueilId = saved.id
+    showToast('Contenu enregistré ✓', 'success')
+  } catch (e) {
+    showToast('Erreur lors de l\'enregistrement', 'error')
+    console.error(e)
+  }
+}
+
+function previewImg(url, targetId = 'img-preview') {
+  const el = document.getElementById(targetId)
   if (!el) return
   el.innerHTML = url
     ? `<img class="preview-img" src="${url}" onerror="this.style.display='none'">`
@@ -669,12 +813,14 @@ function previewImg(url) {
 // Note : Vercel Blob abandonné après instabilité de configuration OIDC/token.
 const IMGBB_API_KEY = '4eb8b1eb9000ee637b390b2e6280ea2b'
 
-async function handleImageUpload(input) {
+// targetIds permet de réutiliser cette fonction pour plusieurs champs image
+// sur un même formulaire (ex. page Accueil : image hero + image histoire).
+async function handleImageUpload(input, targetIds = { hidden: 'f-image', preview: 'img-preview', status: 'upload-status' }) {
   const file = input.files[0]
   if (!file) return
 
-  const status = document.getElementById('upload-status')
-  status.textContent = 'Envoi en cours…'
+  const status = document.getElementById(targetIds.status)
+  if (status) status.textContent = 'Envoi en cours…'
 
   try {
     const base64 = await fileToBase64(file)
@@ -689,15 +835,17 @@ async function handleImageUpload(input) {
 
     if (data.success) {
       const url = data.data.url
-      document.getElementById('f-image').value = url
-      previewImg(url)
-      status.textContent = 'Image envoyée ✓'
-      setTimeout(() => status.textContent = '', 2000)
+      document.getElementById(targetIds.hidden).value = url
+      previewImg(url, targetIds.preview)
+      if (status) {
+        status.textContent = 'Image envoyée ✓'
+        setTimeout(() => status.textContent = '', 2000)
+      }
     } else {
       throw new Error('Échec upload imgbb')
     }
   } catch (e) {
-    status.textContent = 'Erreur lors de l\'envoi de l\'image'
+    if (status) status.textContent = 'Erreur lors de l\'envoi de l\'image'
     console.error(e)
   }
 }
