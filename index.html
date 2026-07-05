@@ -91,15 +91,19 @@
 <!-- HEADER -->
 <header>
   <div class="header-inner">
+    <button class="hamburger-btn" id="hamburger-btn" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav-menu">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
+      </svg>
+    </button>
+
     <a href="/" class="header-logo" aria-label="Brüme Concept Store">
       <img src="img/brume-logo-blue.svg" alt="Brüme Concept Store" class="header-logo-img logo-day" />
       <img src="img/brume-logo-white.svg" alt="Brüme Concept Store" class="header-logo-img logo-night" />
     </a>
-    <nav class="nav-left">
-      <a href="editions.html" class="hide-mobile">Histoires</a>
-      <a href="#boutique" class="hide-mobile" id="nav-selection">Sélection du mois</a>
-      <a href="#about" class="hide-mobile">Notre histoire</a>
-    </nav>
+
     <div class="header-right">
       <button class="theme-toggle" id="theme-toggle" aria-label="Changer de thème jour/nuit">
         <svg class="icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -121,6 +125,12 @@
       </button>
     </div>
   </div>
+
+  <nav class="nav-menu" id="nav-menu" aria-label="Menu principal">
+    <a href="editions.html">Histoires</a>
+    <a href="#boutique" id="nav-selection">Sélection du mois</a>
+    <a href="#about">Notre histoire</a>
+  </nav>
 </header>
 
 <!-- HERO -->
@@ -425,7 +435,28 @@
     Store.init().then(openProductFromUrl);
     loadHistoiresPreview();
     initReviewsCarousel();
+    initHamburgerMenu();
   });
+
+  // Menu hamburger — ouverture/fermeture, clic en dehors, lien cliqué
+  function initHamburgerMenu() {
+    const btn = document.getElementById('hamburger-btn');
+    const menu = document.getElementById('nav-menu');
+    if (!btn || !menu) return;
+
+    const close = () => { menu.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); };
+    const toggle = () => {
+      const isOpen = menu.classList.toggle('open');
+      btn.setAttribute('aria-expanded', String(isOpen));
+    };
+
+    btn.addEventListener('click', (e) => { e.stopPropagation(); toggle(); });
+    menu.querySelectorAll('a').forEach(a => a.addEventListener('click', close));
+    document.addEventListener('click', (e) => {
+      if (!menu.classList.contains('open')) return;
+      if (!menu.contains(e.target) && e.target !== btn) close();
+    });
+  }
 
   // Carousel des avis Google — défilement manuel + auto-play, sans dépendance
   function initReviewsCarousel() {
