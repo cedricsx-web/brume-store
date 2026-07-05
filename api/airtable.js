@@ -3,7 +3,7 @@
 // Générique : sert n'importe quelle table de la base via ?table=nom (défaut "articles")
 // pour éviter de multiplier les fonctions serverless (limite 12 sur le plan Hobby).
 
-const ALLOWED_TABLES = new Set(['articles', 'horaires'])
+const ALLOWED_TABLES = new Set(['articles', 'horaires', 'accueil'])
 
 function tableBaseUrl(table) {
   return `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE}/${table}`
