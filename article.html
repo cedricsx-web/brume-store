@@ -42,7 +42,7 @@
   }
   body { background: var(--bg); color: var(--ink); font-family: 'DM Sans', sans-serif; font-weight: 300; -webkit-font-smoothing: antialiased; }
 
-  header { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 40px; height: 64px; background: rgba(var(--bg-rgb),.92); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(var(--ink-rgb),.1); }
+  .site-header { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 40px; height: 64px; background: rgba(var(--bg-rgb),.92); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(var(--ink-rgb),.1); }
   .hamburger-btn { justify-self: start; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; background: transparent; border: none; color: var(--ink); cursor: pointer; }
   .header-logo { justify-self: center; display: flex; align-items: center; }
   .header-logo-img { height: 40px; width: auto; display: none; }
@@ -256,7 +256,7 @@
   }
 
   @media (max-width: 768px) {
-    header { padding: 0 20px; }
+    .site-header { padding: 0 20px; }
     .article-header { padding: 90px 20px 0; }
     .article-body { padding: 40px 20px 60px; }
     .related-grid { grid-template-columns: 1fr 1fr; }
@@ -292,7 +292,7 @@
   </div>
 </div>
 
-<header>
+<header class="site-header">
   <button class="hamburger-btn" id="hamburger-btn" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav-menu">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
       <line x1="3" y1="6" x2="21" y2="6"/>
