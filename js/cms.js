@@ -164,6 +164,55 @@ async function deleteHoraires(id) {
   await fetch(`${CMS_API}?table=${HORAIRES_TABLE}&id=${id}`, { method: 'DELETE' })
 }
 
+// ─────────────────────────────────────
+// TABLE AIRTABLE "accueil" — une seule ligne, contenu des sections
+// hero et "notre histoire" de la page d'accueil. Champs :
+//   hero_eyebrow, hero_titre, hero_titre_em, hero_description,
+//   hero_image_url, hero_image_legende,
+//   histoire_eyebrow, histoire_titre, histoire_titre_em,
+//   histoire_paragraphe_1, histoire_paragraphe_2, histoire_image_url
+// Si aucune ligne n'existe (ou en cas d'erreur), l'appelant doit conserver
+// le contenu HTML statique déjà présent dans la page (fallback).
+// ─────────────────────────────────────
+
+const ACCUEIL_TABLE = 'accueil'
+
+// Récupère la ligne unique de contenu. Renvoie null si la table est vide
+// ou si Airtable est injoignable — l'appelant doit alors garder le HTML existant.
+async function getAccueil() {
+  try {
+    const params = new URLSearchParams({ table: ACCUEIL_TABLE })
+    const res = await fetch(`${CMS_API}?${params}`)
+    const data = await res.json()
+    if (!data.records || !data.records.length) return null
+    const r = data.records[0]
+    return { id: r.id, ...r.fields }
+  } catch (e) {
+    console.error('getAccueil error:', e)
+    return null
+  }
+}
+
+// Crée ou met à jour la ligne unique de contenu accueil.
+async function saveAccueil(fields, id = null) {
+  if (id) {
+    const res = await fetch(`${CMS_API}?table=${ACCUEIL_TABLE}&id=${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields })
+    })
+    return res.json()
+  } else {
+    const res = await fetch(`${CMS_API}?table=${ACCUEIL_TABLE}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ records: [{ fields }] })
+    })
+    const data = await res.json()
+    return data.records?.[0]
+  }
+}
+
 // Découpe la valeur brute d'un jour ("9h30 – 12h30, 14h – 19h") en un tableau
 // de 1 ou 2 plages nettoyées. Renvoie un tableau vide si le jour est fermé.
 function parseDaySlots(value) {
