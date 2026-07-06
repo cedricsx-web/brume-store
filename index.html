@@ -138,13 +138,13 @@
 <!-- HERO -->
 <section class="hero">
   <div class="hero-text-panel">
-    <p class="hero-eyebrow">Concept Store · Cachan, France</p>
+    <p class="hero-eyebrow" id="hero-eyebrow">Concept Store · Cachan, France</p>
     <div class="hero-title-row">
-      <h1 class="hero-title">Entre galerie<br>et <em>boutique</em></h1>
+      <h1 class="hero-title" id="hero-title">Entre galerie<br>et <em>boutique</em></h1>
       <img src="img/brume-logo-blue.svg" alt="" aria-hidden="true" class="hero-title-logo logo-day" />
       <img src="img/brume-logo-white.svg" alt="" aria-hidden="true" class="hero-title-logo logo-night" />
     </div>
-    <p class="hero-desc">
+    <p class="hero-desc" id="hero-desc">
       Chez BrüMe, chaque objet est choisi pour sa capacité à transformer un espace.
       Des pièces de décoration, de l'outillage élégant, et des trouvailles du quotidien.
     </p>
@@ -157,8 +157,8 @@
     </div>
   </div>
   <div class="hero-image-panel">
-    <img src="img/hero.jpg" alt="Brüme Concept Store" />
-    <span class="hero-image-label">Collection Printemps 2025</span>
+    <img src="img/hero.jpg" alt="Brüme Concept Store" id="hero-image" />
+    <span class="hero-image-label" id="hero-image-legende">Collection Printemps 2025</span>
   </div>
 </section>
 
@@ -180,9 +180,9 @@
 
 <!-- HISTOIRES (aperçu articles) -->
 <section class="histoires-preview" id="histoires-preview">
-  <div class="section-header">
-    <p class="eyebrow">BrüMe — Éditions</p>
-    <h2 class="section-title">Histoires</h2>
+  <div class="section-header" style="flex-direction:column;align-items:flex-start;gap:10px;">
+    <p class="eyebrow" id="editions-eyebrow">BrüMe — Éditions</p>
+    <h2 class="section-title" id="editions-titre">Histoires</h2>
   </div>
   <div id="histoires-grid" class="histoires-grid"></div>
 </section>
@@ -191,13 +191,13 @@
 <section class="editorial" id="about">
   <div class="editorial-inner">
     <div class="editorial-image">
-      <img src="img/editorial.jpg" alt="Brüme - Notre histoire" />
+      <img src="img/editorial.jpg" alt="Brüme - Notre histoire" id="histoire-image" />
     </div>
     <div class="editorial-text">
-      <p class="eyebrow">Notre histoire</p>
-      <h2>Un lieu conçu pour <em>ralentir</em></h2>
-      <p>BrüMe est née d'une envie simple : créer un endroit où l'on prend le temps de toucher, de sentir, de choisir. Des objets fabriqués avec soin, souvent en petite série, par des artisans qui ont encore quelque chose à dire.</p>
-      <p>La boutique de Cachan est ouverte depuis 2021. La boutique en ligne est le prolongement naturel de cet espace — même sélection, même exigence.</p>
+      <p class="eyebrow" id="histoire-eyebrow">Notre histoire</p>
+      <h2 id="histoire-titre">Un lieu conçu pour <em>ralentir</em></h2>
+      <p id="histoire-p1">BrüMe est née d'une envie simple : créer un endroit où l'on prend le temps de toucher, de sentir, de choisir. Des objets fabriqués avec soin, souvent en petite série, par des artisans qui ont encore quelque chose à dire.</p>
+      <p id="histoire-p2">La boutique de Cachan est ouverte depuis 2021. La boutique en ligne est le prolongement naturel de cet espace — même sélection, même exigence.</p>
       <a href="#boutique" class="btn-primary">Découvrir la boutique →</a>
     </div>
   </div>
@@ -433,6 +433,51 @@
     loadHistoiresPreview();
     initReviewsCarousel();
   });
+
+  // Applique le contenu hero + notre histoire + éditions depuis Airtable
+  // (Store.config, chargé par Store.init) par-dessus le HTML statique. Si la
+  // config est vide (table non renseignée) ou absente (erreur réseau), le
+  // contenu HTML déjà présent dans la page reste affiché tel quel (fallback).
+  // Appelée depuis js/store.js une fois Store.config disponible.
+  function applyAccueilContent(c) {
+    if (!c) return;
+
+    const setText = (id, value) => {
+      if (value == null || value === '') return;
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
+    };
+    const setImg = (id, value) => {
+      if (!value) return;
+      const el = document.getElementById(id);
+      if (el) el.src = value;
+    };
+    // Titre + emphase italique sur une seule ligne, séparés par un simple
+    // espace (pas de <br> forcé).
+    const setTitleWithEm = (titleId, titre, titreEm) => {
+      if (!titre) return;
+      const el = document.getElementById(titleId);
+      if (!el) return;
+      el.innerHTML = titreEm
+        ? `${titre} <em>${titreEm}</em>`
+        : titre;
+    };
+
+    setText('hero-eyebrow', c.hero_eyebrow);
+    setTitleWithEm('hero-title', c.hero_titre, c.hero_titre_em);
+    setText('hero-desc', c.hero_description);
+    setImg('hero-image', c.hero_image_url);
+    setText('hero-image-legende', c.hero_image_legende);
+
+    setText('histoire-eyebrow', c.histoire_eyebrow);
+    setTitleWithEm('histoire-titre', c.histoire_titre, c.histoire_titre_em);
+    setText('histoire-p1', c.histoire_paragraphe_1);
+    setText('histoire-p2', c.histoire_paragraphe_2);
+    setImg('histoire-image', c.histoire_image_url);
+
+    setText('editions-eyebrow', c.editions_eyebrow);
+    setText('editions-titre', c.editions_titre);
+  }
 
   // Carousel des avis Google — défilement manuel + auto-play, sans dépendance
   function initReviewsCarousel() {
