@@ -5,6 +5,7 @@ const Store = {
   cart: [],
   activeCategory: null,
   stopStockSync: null,
+  config: {},  // contenu éditorial (Airtable "accueil") : hero, notre histoire, éditions
 
   // ── CACHE CONFIG ──
   _CACHE_KEY: 'brume_catalog',
@@ -48,14 +49,16 @@ const Store = {
 
     // 2) Fetch fresh data (in parallel)
     try {
-      const [products, categories, stock] = await Promise.all([
+      const [products, categories, stock, config] = await Promise.all([
         API.getProducts(),
         API.getCategories(),
-        API.getStock()
+        API.getStock(),
+        (typeof getAccueil === 'function' ? getAccueil() : Promise.resolve(null))
       ]);
       this.products   = products;
       this.categories = categories;
       this.stock      = stock;
+      this.config      = config || {};
       this._saveCache(products, categories);
 
       // Re-render with fresh data (instant — data already in memory)
@@ -78,6 +81,10 @@ const Store = {
       UI.setActiveCategory(this.activeCategory);
 
       this.stopStockSync = startStockSync(this.onStockUpdate.bind(this));
+
+      // Applique le contenu Hero / Notre histoire / Éditions depuis Airtable,
+      // maintenant que la config est disponible (voir index.html).
+      if (typeof applyAccueilContent === 'function') applyAccueilContent(this.config);
     } catch (err) {
       console.error('Store init error:', err);
       // If we had no cache either, show error
