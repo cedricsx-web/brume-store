@@ -262,24 +262,29 @@ const UI = {
     };
 
     if (totalPages > 1) {
+      const navGroup = document.createElement('div');
+      navGroup.className = 'pagination-nav';
+
       const prev = document.createElement('button');
       prev.className = 'pagination-btn pagination-prev';
       prev.textContent = '← Précédent';
       prev.disabled = page === 1;
       prev.addEventListener('click', () => goTo(page - 1));
-      pager.appendChild(prev);
+      navGroup.appendChild(prev);
 
       const label = document.createElement('span');
       label.className = 'pagination-label';
       label.textContent = `Page ${page} / ${totalPages}`;
-      pager.appendChild(label);
+      navGroup.appendChild(label);
 
       const next = document.createElement('button');
       next.className = 'pagination-btn pagination-next';
       next.textContent = 'Suivant →';
       next.disabled = page === totalPages;
       next.addEventListener('click', () => goTo(page + 1));
-      pager.appendChild(next);
+      navGroup.appendChild(next);
+
+      pager.appendChild(navGroup);
     }
 
     // Sélecteur du nombre de produits par page — seule la petite flèche est
