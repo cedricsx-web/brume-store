@@ -735,6 +735,19 @@ hr.divider {
   font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; transition: background 0.2s;
 }
 .newsletter-form button:hover { background: var(--accent-hover); }
+.newsletter-form button:disabled { opacity: 0.6; cursor: default; }
+.newsletter-feedback {
+  min-height: 18px; margin-top: 14px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em;
+}
+.newsletter-feedback.is-success { color: var(--success); }
+.newsletter-feedback.is-error { color: var(--danger); }
+.newsletter-disclaimer {
+  margin-top: 16px; font-size: 11px; line-height: 1.6;
+  color: rgba(var(--ink-rgb),0.3); max-width: 420px; margin-left: auto; margin-right: auto;
+}
+.newsletter-disclaimer a { text-decoration: underline; color: rgba(var(--ink-rgb),0.4); }
+.newsletter-disclaimer a:hover { color: var(--ink); }
 
 /* ── FOOTER ────────────────────────────────────────── */
 footer { background: var(--bg); border-top: 1px solid var(--light-mist); padding: 64px 40px 32px; }
