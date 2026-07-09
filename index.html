@@ -182,7 +182,7 @@
 <section class="histoires-preview" id="histoires-preview">
   <div class="section-header" style="flex-direction:column;align-items:flex-start;gap:10px;">
     <p class="eyebrow" id="editions-eyebrow">BrüMe — Éditions</p>
-    <h2 class="section-title" id="editions-titre">Histoires</h2>
+    <h2 class="section-title" id="editions-titre"><em>Histoires</em></h2>
   </div>
   <div id="histoires-grid" class="histoires-grid"></div>
 </section>
@@ -369,8 +369,8 @@
 
 <!-- NEWSLETTER -->
 <div class="newsletter">
-  <h2>3 recettes originales, à vous</h2>
-  <p>Inscrivez-vous et recevez gratuitement notre livret de 3 recettes originales, pensées avec les objets et accessoires de la boutique.</p>
+  <h2 id="newsletter-titre">3 recettes originales, à <em>vous</em></h2>
+  <p id="newsletter-soustitre">Inscrivez-vous et recevez gratuitement notre livret de 3 recettes originales, pensées avec les objets et accessoires de la boutique.</p>
   <form id="newsletter-form" class="newsletter-form" novalidate>
     <input
       type="email"
@@ -485,6 +485,22 @@
         ? `${titre} <em>${titreEm}</em>`
         : titre;
     };
+    // Pour les titres à champ unique (pas de champ "_em" séparé) : dore
+    // automatiquement le dernier mot, comme partout ailleurs sur le site
+    // (hero, notre histoire, avis clients, catégories boutique...).
+    const escHtml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const setTitleGoldLastWord = (titleId, value) => {
+      if (!value) return;
+      const el = document.getElementById(titleId);
+      if (!el) return;
+      const words = value.trim().split(' ');
+      if (words.length <= 1) {
+        el.innerHTML = `<em>${escHtml(value)}</em>`;
+        return;
+      }
+      const last = words.pop();
+      el.innerHTML = `${escHtml(words.join(' '))} <em>${escHtml(last)}</em>`;
+    };
 
     setText('hero-eyebrow', c.hero_eyebrow);
     setTitleWithEm('hero-title', c.hero_titre, c.hero_titre_em);
@@ -499,7 +515,10 @@
     setImg('histoire-image', c.histoire_image_url);
 
     setText('editions-eyebrow', c.editions_eyebrow);
-    setText('editions-titre', c.editions_titre);
+    setTitleGoldLastWord('editions-titre', c.editions_titre);
+
+    setTitleGoldLastWord('newsletter-titre', c.newsletter_titre);
+    setText('newsletter-soustitre', c.newsletter_soustitre);
   }
 
   // Carousel des avis Google — défilement manuel + auto-play, sans dépendance

@@ -66,7 +66,7 @@
   .hero { padding: 120px 40px 60px; border-bottom: 1px solid rgba(var(--ink-rgb),.12); display: grid; grid-template-columns: 1fr 1fr; align-items: end; gap: 40px; }
   .eyebrow { font-family: 'Space Mono', monospace; font-size: .6rem; letter-spacing: .2em; text-transform: uppercase; color: var(--sand); margin-bottom: 20px; display: block; }
   .hero h1 { font-family: 'Cormorant Garamond', serif; font-size: clamp(3rem, 6vw, 5.5rem); font-weight: 300; line-height: 1.0; }
-  .hero h1 em { font-style: italic; color: var(--accent); }
+  .hero h1 em { font-style: normal; color: var(--sand); }
   .hero-desc { font-size: .9rem; line-height: 1.75; color: var(--ink); opacity: .75; max-width: 360px; }
 
   /* FEATURED */
@@ -147,7 +147,7 @@
 <section class="hero">
   <div>
     <span class="eyebrow" id="editions-eyebrow">BrüMe — Éditions</span>
-    <h1 id="editions-titre">Objets,<br><em>créateurs,</em><br>matières.</h1>
+    <h1 id="editions-titre">Objets,<br>créateurs,<br><em>matières</em>.</h1>
   </div>
   <p class="hero-desc" id="editions-description">Des textes sur les objets qui nous entourent, les designers qui les pensent, et la manière dont les choses bien faites s'inscrivent dans le quotidien.</p>
 </section>
@@ -191,21 +191,29 @@
         if (el) el.textContent = value
       }
 
-      // Reconstruit la mise en page à 3 lignes (partie du milieu en italique)
-      // à partir d'un titre texte simple séparé par des virgules — ex.
-      // "Objets, créateurs, matières" -> "Objets,<br><em>créateurs,</em><br>matières".
-      // Si le titre ne contient pas 2 ou 3 parties, il s'affiche sur une seule ligne.
+      // Reconstruit la mise en page à 3 lignes (dernière partie en or, comme
+      // partout ailleurs sur le site) à partir d'un titre texte simple séparé
+      // par des virgules — ex. "Objets, créateurs, matières" ->
+      // "Objets,<br>créateurs,<br><em>matières</em>". Si le titre ne contient
+      // pas 2 ou 3 parties, il s'affiche sur une seule ligne avec son dernier
+      // mot en or.
       const setEditionsTitre = (id, value) => {
         if (!value) return
         const el = document.getElementById(id)
         if (!el) return
         const parts = value.split(',').map(s => s.trim()).filter(Boolean)
         if (parts.length === 3) {
-          el.innerHTML = `${esc(parts[0])},<br><em>${esc(parts[1])},</em><br>${esc(parts[2])}`
+          el.innerHTML = `${esc(parts[0])},<br>${esc(parts[1])},<br><em>${esc(parts[2])}</em>`
         } else if (parts.length === 2) {
           el.innerHTML = `${esc(parts[0])},<br><em>${esc(parts[1])}</em>`
         } else {
-          el.textContent = value
+          const words = value.trim().split(' ')
+          if (words.length <= 1) {
+            el.innerHTML = `<em>${esc(value)}</em>`
+          } else {
+            const last = words.pop()
+            el.innerHTML = `${esc(words.join(' '))} <em>${esc(last)}</em>`
+          }
         }
       }
 

@@ -230,7 +230,7 @@
     <div id="panel-accueil" style="display:none;">
       <div class="sidebar-section">Page d'accueil</div>
       <div style="font-family:'Space Mono',monospace;font-size:.6rem;color:var(--sand);opacity:.5;line-height:1.6;padding:4px 0 12px;">
-        Le texte et les images des sections « Hero », « Notre histoire », « Éditions » et les titres de la boutique.
+        Le texte et les images des sections « Hero », « Notre histoire », « Éditions », « Newsletter » et les titres de la boutique.
       </div>
     </div>
 
@@ -786,10 +786,25 @@ function renderAccueilForm(a) {
           <label>Titre</label>
           <input id="a-editions-titre" type="text" value="${esc(a.editions_titre) || 'Objets, créateurs, matières'}" placeholder="ex : Objets, créateurs, matières">
         </div>
-        <p class="field-hint" style="grid-column:1/-1;margin:-8px 0 4px;">Sur la page « Éditions », si le titre contient 2 ou 3 parties séparées par des virgules, il s'affiche automatiquement sur plusieurs lignes avec la partie du milieu en italique (comme actuellement). Sur l'accueil, il s'affiche simplement sur une ligne.</p>
+        <p class="field-hint" style="grid-column:1/-1;margin:-8px 0 4px;">Sur la page « Éditions », si le titre contient 2 ou 3 parties séparées par des virgules, il s'affiche automatiquement sur plusieurs lignes avec la dernière partie en or (comme partout ailleurs sur le site). Sur l'accueil, il s'affiche sur une ligne avec son dernier mot en or.</p>
         <div class="form-group full">
           <label>Description (page « Éditions » uniquement)</label>
           <textarea id="a-editions-description" rows="3">${esc(a.editions_description) || `Des textes sur les objets qui nous entourent, les designers qui les pensent, et la manière dont les choses bien faites s'inscrivent dans le quotidien.`}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-block">
+      <h2 class="section-block-title">Newsletter</h2>
+      <p class="field-hint" style="margin:-8px 0 16px;">Le dernier mot du titre s'affiche automatiquement en or, comme sur le reste du site.</p>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Titre</label>
+          <input id="a-newsletter-titre" type="text" value="${esc(a.newsletter_titre) || '3 recettes originales, à vous'}">
+        </div>
+        <div class="form-group">
+          <label>Sous-titre</label>
+          <input id="a-newsletter-soustitre" type="text" value="${esc(a.newsletter_soustitre) || 'Inscrivez-vous et recevez gratuitement notre livret de 3 recettes originales, pensées avec les objets et accessoires de la boutique.'}">
         </div>
       </div>
     </div>
@@ -845,6 +860,8 @@ async function saveAccueilForm() {
     editions_eyebrow: document.getElementById('a-editions-eyebrow').value.trim(),
     editions_titre: document.getElementById('a-editions-titre').value.trim(),
     editions_description: document.getElementById('a-editions-description').value.trim(),
+    newsletter_titre: document.getElementById('a-newsletter-titre').value.trim(),
+    newsletter_soustitre: document.getElementById('a-newsletter-soustitre').value.trim(),
     shop_all_titre: document.getElementById('a-shop-all-titre').value.trim(),
     shop_all_soustitre: document.getElementById('a-shop-all-soustitre').value.trim(),
     shop_selection_titre: document.getElementById('a-shop-selection-titre').value.trim(),
