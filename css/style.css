@@ -725,6 +725,13 @@ footer { background: var(--bg); border-top: 1px solid var(--light-mist); padding
 .payment-icon { background: rgba(var(--ink-rgb),0.06); border: 1px solid rgba(var(--ink-rgb),0.1); padding: 4px 8px; font-family: var(--mono); font-size: 9px; color: rgba(var(--ink-rgb),0.35); letter-spacing: 0.05em; }
 .footer-hiboutik-credit { font-family: var(--mono); font-size: 9px; color: rgba(var(--ink-rgb),0.15); letter-spacing: 0.06em; }
 
+/* ── TRIPADVISOR WIDGET ────────────────────────────── */
+.footer-tripadvisor { max-width: 1400px; margin: 0 auto 32px; padding: 24px 0; border-top: 1px solid var(--light-mist); border-bottom: 1px solid var(--light-mist); text-align: center; display: flex; justify-content: center; align-items: center; }
+.footer-tripadvisor .TA_rated { display: flex; justify-content: center; }
+.footer-tripadvisor .TA_links { list-style: none; margin: 0; padding: 0; }
+.footer-tripadvisor img { max-width: 200px; height: auto; display: block; }
+
+
 /* ── RESPONSIVE ────────────────────────────────────── */
 @media (max-width: 1024px) { #products-grid { grid-template-columns: repeat(3,1fr); } }
 @media (max-width: 900px) {
@@ -747,6 +754,8 @@ footer { background: var(--bg); border-top: 1px solid var(--light-mist); padding
   footer { padding: 48px 20px 28px; }
   #cart-panel { width: 100vw; }
   .histoires-grid { grid-template-columns: 1fr 1fr; padding: 0 20px; gap: 14px; }
+  .footer-tripadvisor { margin: 0 auto 24px; padding: 16px 0; }
+  .footer-tripadvisor img { max-width: 150px; }
 }
 @media (max-width: 480px) {
   #products-grid { grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 14px; }
