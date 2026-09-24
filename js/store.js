@@ -289,6 +289,12 @@ const Store = {
     // Ouvre Hiboutik dans un nouvel onglet — le JS injecté là-bas lit brume_cart et remplit le panier.
     // Pas d'await avant window.open : il doit rester dans le clic pour ne pas être bloqué.
     const url = 'https://brumeconceptstore.hiboutik.com/myshop/?brume_cart=' + encodeURIComponent(cartParam);
+
+    // Le panier est transféré dans l'URL : on vide le panier local du site
+    this.cart = [];
+    this._saveCartToStorage();
+    this.renderCart();
+
     const win = window.open(url, '_blank');
     if (!win) { window.location.href = url; return; } // onglet bloqué : redirection classique
     win.opener = null; // sécurité : l'onglet Hiboutik ne peut pas agir sur cette page
