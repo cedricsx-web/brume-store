@@ -799,6 +799,12 @@ function checkoutFromArticle() {
   if (!cart.length) return
   const cartParam = cart.map(i => `${i.product_id}:${i.qty}`).join(',')
   const url = 'https://brumeconceptstore.hiboutik.com/myshop/?brume_cart=' + encodeURIComponent(cartParam)
+
+  // Le panier est transféré dans l'URL : on vide le panier local du site
+  setLocalCart([])
+  updateCartBadge()
+  renderCartPanel()
+
   const win = window.open(url, '_blank')
   if (!win) { window.location.href = url; return } // onglet bloqué : redirection classique
   win.opener = null // sécurité : l'onglet Hiboutik ne peut pas agir sur cette page
