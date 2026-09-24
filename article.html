@@ -118,7 +118,7 @@
   .related-add-btn:hover { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
   .related-add-btn.added { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
   .related-note { font-family: 'DM Sans', sans-serif; font-size: .75rem; color: var(--sand); opacity: .7; margin-top: 28px; max-width: 960px; }
-  .related-item-price { font-family: 'Space Mono', monospace; font-size: .62rem; color: var(--sand); }
+  .related-item-price { font-family: 'Space Mono', monospace; font-size: .7rem; color: var(--ink); margin-bottom: 14px; }
   .related-cta { display: inline-block; margin-top: 40px; font-family: 'Space Mono', monospace; font-size: .62rem; letter-spacing: .15em; text-transform: uppercase; color: var(--ink); border: 1px solid rgba(var(--ink-rgb),.2); padding: 14px 28px; text-decoration: none; transition: all .25s; }
   .related-cta:hover { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 
@@ -790,11 +790,19 @@ async function removeCartItem(productId) {
   renderCartPanel()
 }
 
-async function checkoutFromArticle() {
-  const cart = await getLocalCart()
+// Ouvre la page de commande Hiboutik dans un nouvel onglet.
+// Lecture synchrone du panier : window.open doit être appelé directement dans le clic,
+// sinon Safari/Chrome bloquent l'onglet comme une pop-up.
+function checkoutFromArticle() {
+  let cart = []
+  try { cart = JSON.parse(localStorage.getItem('brume_cart') || '[]') } catch {}
   if (!cart.length) return
   const cartParam = cart.map(i => `${i.product_id}:${i.qty}`).join(',')
-  window.location.href = 'https://brumeconceptstore.hiboutik.com/myshop/?brume_cart=' + encodeURIComponent(cartParam)
+  const url = 'https://brumeconceptstore.hiboutik.com/myshop/?brume_cart=' + encodeURIComponent(cartParam)
+  const win = window.open(url, '_blank')
+  if (!win) { window.location.href = url; return } // onglet bloqué : redirection classique
+  win.opener = null // sécurité : l'onglet Hiboutik ne peut pas agir sur cette page
+  closeCartPanel()
 }
 </script>
 </body>
