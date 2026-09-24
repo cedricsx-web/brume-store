@@ -392,7 +392,8 @@
               <div class="related-item-img">
                 <img src="https://brumeconceptstore.hiboutik.com/myshop/images/?img=big_${pid}-1.jpg" alt="Produit ${pid}" onerror="this.style.display='none'">
               </div>
-              <div class="related-item-name">Voir le produit #${pid}</div>
+              <div class="related-item-name">Voir le produit</div>
+              <div class="related-item-price"></div>
             </a>
             <button class="related-add-btn" onclick="addRelatedToCart('${pid}', this)">Ajouter au panier</button>
           </div>`).join('')
@@ -447,6 +448,9 @@
     `
 
     window._article = a
+
+    // Remplace "Voir le produit" par le vrai nom + prix (et masque les produits plus en ligne)
+    fillRelatedProducts()
 
     // Ouvre la modale produit si l'URL contient ?produit=ID (lien direct partagé)
     const productParam = params.get('produit')
@@ -527,9 +531,17 @@ let _productsFetching = null
 function _prefetchProducts() {
   if (!_productsFetching) {
     _productsFetching = fetch('/api/products')
-      .then(r => r.json())
-      .then(data => { _productsCache = data; return data; })
-      .catch(() => null)
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json() })
+      .then(data => {
+        if (!Array.isArray(data)) throw new Error('Réponse inattendue')
+        _productsCache = data
+        return data
+      })
+      .catch(err => {
+        console.warn('Produits indisponibles :', err)
+        _productsFetching = null // permet de réessayer au prochain appel
+        return null
+      })
   }
   return _productsFetching
 }
@@ -543,6 +555,31 @@ async function _getProductById(productId) {
     : null
 }
 
+// Complète les cartes "produits liés" avec le nom et le prix réels
+async function fillRelatedProducts() {
+  const items = document.querySelectorAll('.related-item[data-pid]')
+  if (!items.length) return
+  await _prefetchProducts()
+  if (!_productsCache) return // API indisponible : on garde l'affichage par défaut
+
+  items.forEach(el => {
+    const p = _productsCache.find(x => String(x.product_id) === String(el.dataset.pid))
+    if (!p) { el.remove(); return } // produit archivé ou non publié en ligne
+    const price = parseFloat(p.product_price)
+    const sale = p.product_discount_price ? parseFloat(p.product_discount_price) : null
+    el.querySelector('.related-item-name').textContent = p.product_model
+    el.querySelector('.related-item-price').innerHTML = sale
+      ? `<span style="text-decoration:line-through;opacity:.5;margin-right:6px;">${fmt(price)}</span>${fmt(sale)}`
+      : fmt(price)
+    const img = el.querySelector('.related-item-img img')
+    if (img) img.alt = p.product_model
+  })
+
+  // Plus aucun produit valide : on retire toute la section
+  const section = document.querySelector('.related')
+  if (section && !section.querySelector('.related-item')) section.remove()
+}
+
 async function openProductModal(productId) {
   // Show loading state immediately
   document.getElementById('product-modal').classList.add('open')
@@ -552,18 +589,26 @@ async function openProductModal(productId) {
   document.getElementById('modal-brand').textContent = ''
   document.getElementById('modal-desc').innerHTML = ''
   document.getElementById('modal-price').textContent = ''
-  document.getElementById('modal-img').src = ''
+  const img = document.getElementById('modal-img')
+  img.onerror = null                 // sinon l'ancien handler masque l'image au reset
+  img.removeAttribute('src')
+  img.style.display = ''             // ré-affiche l'image si un produit précédent l'avait masquée
+  document.querySelector('#product-modal .modal-img-wrap').style.background = ''
+  const addBtn = document.getElementById('modal-add-btn')
+  addBtn.disabled = true
+  addBtn.onclick = null
 
   const p = await _getProductById(productId)
   if (!p) {
     document.getElementById('modal-name').textContent = 'Produit introuvable'
+    document.getElementById('modal-desc').innerHTML = '<p class="desc-empty">Ce produit n\'est plus disponible en ligne.</p>'
+    addBtn.textContent = 'Indisponible'
     return
   }
 
   const price = parseFloat(p.product_price)
   const sale = p.product_discount_price ? parseFloat(p.product_discount_price) : null
 
-  const img = document.getElementById('modal-img')
   img.src = `https://brumeconceptstore.hiboutik.com/myshop/images/?img=big_${p.product_id}-1.jpg`
   img.onerror = function () {
     this.style.display = 'none'
@@ -588,7 +633,6 @@ async function openProductModal(productId) {
     ? `<span style="text-decoration:line-through;opacity:.5;margin-right:8px;">${fmt(price)}</span>${fmt(sale)}`
     : fmt(price)
 
-  const addBtn = document.getElementById('modal-add-btn')
   addBtn.disabled = false
   addBtn.textContent = 'Ajouter au panier'
   addBtn.onclick = () => {
