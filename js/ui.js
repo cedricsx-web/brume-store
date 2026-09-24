@@ -408,6 +408,7 @@ const UI = {
     const sale  = p.product_discount_price ? parseFloat(p.product_discount_price) : null;
     const oos   = qty === 0;
 
+    document.getElementById('modal-img').style.display = ''  // ré-affiche si un produit précédent sans photo l'avait masquée
     document.getElementById('modal-img').src = `https://brumeconceptstore.hiboutik.com/myshop/images/?img=big_${p.product_id}-1.jpg`;
     document.getElementById('modal-img').onerror = function() {
       this.style.display = 'none';
