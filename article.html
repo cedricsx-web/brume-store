@@ -643,10 +643,12 @@ async function openProductModal(productId) {
     setTimeout(() => { closeProductModal(); openCartPanel() }, 300)
   }
 
-  // Reflète le produit ouvert dans l'URL sans recharger la page
-  const url = new URL(window.location)
-  url.searchParams.set('produit', p.product_id)
-  history.pushState({}, '', url)
+  // Reflète le produit dans l'URL — même format que depuis la liste produit :
+  // /produit/ID-slug.html (partageable, indexable, cohérent sur toutes les pages)
+  const _slug = p.product_model.toString()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80)
+  history.pushState({}, '', `/produit/${p.product_id}-${_slug}.html`)
 
   // Mobile: move add button onto image
   if (window.innerWidth <= 700) {
@@ -667,9 +669,8 @@ function closeProductModal() {
   var reassurance = document.querySelector('#product-modal .modal-reassurance')
   if (btn && info && btn.parentNode !== info) info.insertBefore(btn, reassurance)
 
-  const url = new URL(window.location)
-  url.searchParams.delete('produit')
-  history.pushState({}, '', url)
+  // Restaure l'URL de l'article (retire le slug produit ajouté à l'ouverture)
+  history.pushState({}, '', window.location.pathname.replace(/\/produit\/[^?#]*/, '') || window.location.href.split('?')[0])
 }
 
 function updateCartBadge() {
