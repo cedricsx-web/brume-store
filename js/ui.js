@@ -1,3 +1,19 @@
+/* ── URL PRODUIT ──
+   Doit rester identique à slugify() dans scripts/generate-pages.js :
+   chaque produit a une page statique /produit/{id}-{slug}.html générée au build. */
+function productSlug(text) {
+  return (text || '')
+    .toString()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80) || 'produit';
+}
+function productPath(p) {
+  return `/produit/${p.product_id}-${productSlug(p.product_model)}.html`;
+}
+
 const UI = {
 
   /* ── LOADER ── */
@@ -356,7 +372,7 @@ const UI = {
         </div>
       </div>
       <div class="product-info">
-        <div class="product-name">${p.product_model}</div>
+        <a class="product-name" href="${productPath(p)}" style="display:block;color:inherit;text-decoration:none;">${p.product_model}</a>
         <div class="product-maker">${p.product_brand}</div>
         <div class="product-price">
           ${sale ? `<span class="old-price">${fmt(price)}</span>${fmt(sale)}` : fmt(price)}
@@ -367,6 +383,13 @@ const UI = {
     card.querySelector('.product-img-wrap').addEventListener('click', () => UI.openModal(p, qty));
     card.querySelector('.product-img-wrap').addEventListener('keydown', e => { if(e.key==='Enter') UI.openModal(p, qty); });
     card.querySelector('.view-btn').addEventListener('click', e => { e.stopPropagation(); UI.openModal(p, qty); });
+    // Le nom est un vrai lien vers la page produit (indexable par Google).
+    // Clic normal → modale ; Ctrl/Cmd/clic molette → ouvre la page dans un nouvel onglet.
+    card.querySelector('a.product-name').addEventListener('click', e => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+      e.preventDefault();
+      UI.openModal(p, qty);
+    });
 
     return card;
   },
@@ -420,6 +443,17 @@ const UI = {
       }
     };
 
+    // URL propre à chaque produit : partageable, et visible dans la barre d'adresse
+    const path = productPath(p);
+    if (!this._modalUrlPushed) {
+      this._titleBeforeModal = document.title;
+      history.pushState({ brumeProduct: p.product_id }, '', path);
+      this._modalUrlPushed = true;
+    } else if (location.pathname !== path) {
+      history.replaceState({ brumeProduct: p.product_id }, '', path);
+    }
+    document.title = `${p.product_model} | Brüme Concept Store Cachan`;
+
     document.getElementById('product-modal').classList.add('open');
     document.getElementById('modal-overlay').classList.add('active');
     document.body.style.overflow = 'hidden';
@@ -439,7 +473,15 @@ const UI = {
     }
   },
 
-  closeModal() {
+  closeModal(fromHistory = false) {
+    const wasOpen = document.getElementById('product-modal').classList.contains('open');
+    if (this._modalUrlPushed) {
+      this._modalUrlPushed = false;
+      if (this._titleBeforeModal) document.title = this._titleBeforeModal;
+      // Revient à l'URL d'avant l'ouverture (sauf si c'est déjà le bouton Retour qui l'a fait)
+      if (!fromHistory) history.back();
+    }
+    if (!wasOpen) return;
     document.getElementById('product-modal').classList.remove('open');
     document.getElementById('modal-overlay').classList.remove('active');
     document.body.style.overflow = '';
@@ -613,4 +655,11 @@ window.addEventListener('resize', () => {
       if (UI._pageState.products.length) UI._renderProductsPage();
     }
   }, 200);
+});
+
+/* Bouton Retour du navigateur : ferme la modale au lieu de quitter la page */
+window.addEventListener('popstate', () => {
+  if (document.getElementById('product-modal')?.classList.contains('open')) {
+    UI.closeModal(true);
+  }
 });
