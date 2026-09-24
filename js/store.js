@@ -286,8 +286,13 @@ const Store = {
       .map(item => item.product.product_id + ':' + item.qty)
       .join(',');
 
-    // Redirect to Hiboutik — the injected JS there catches brume_cart and fills the cart
-    window.location.href =
-      'https://brumeconceptstore.hiboutik.com/myshop/?brume_cart=' + encodeURIComponent(cartParam);
+    // Ouvre Hiboutik dans un nouvel onglet — le JS injecté là-bas lit brume_cart et remplit le panier.
+    // Pas d'await avant window.open : il doit rester dans le clic pour ne pas être bloqué.
+    const url = 'https://brumeconceptstore.hiboutik.com/myshop/?brume_cart=' + encodeURIComponent(cartParam);
+    const win = window.open(url, '_blank');
+    if (!win) { window.location.href = url; return; } // onglet bloqué : redirection classique
+    win.opener = null; // sécurité : l'onglet Hiboutik ne peut pas agir sur cette page
+    UI.hideCheckoutLoading();
+    UI.closeCart();
   }
 };
