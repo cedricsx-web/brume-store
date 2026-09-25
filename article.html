@@ -303,7 +303,7 @@
     </svg>
   </button>
 
-  <a href="index.html" class="header-logo" aria-label="Brüme Concept Store">
+  <a href="/index.html" class="header-logo" aria-label="Brüme Concept Store">
     <img src="img/brume-logo-blue.svg" alt="Brüme Concept Store" class="header-logo-img logo-day" />
     <img src="img/brume-logo-white.svg" alt="Brüme Concept Store" class="header-logo-img logo-night" />
   </a>
@@ -324,8 +324,8 @@
 
 <div class="nav-menu" id="nav-menu" aria-label="Menu principal">
   <div class="nav-menu-links">
-    <a href="index.html">Boutique</a>
-    <a href="editions.html">Éditions</a>
+    <a href="/index.html">Boutique</a>
+    <a href="/editions.html">Éditions</a>
   </div>
 </div>
 
@@ -369,7 +369,7 @@
 (async () => {
   const params = new URLSearchParams(window.location.search)
   const id = params.get('id')
-  if (!id) { window.location.href = 'editions.html'; return }
+  if (!id) { window.location.href = '/editions.html'; return }
 
   try {
     const a = await getArticle(id)
@@ -420,7 +420,7 @@
 
     document.getElementById('content').innerHTML = `
       <header class="article-header">
-        <a href="editions.html" class="back">← Retour aux éditions</a>
+        <a href="/editions.html" class="back">← Retour aux éditions</a>
         <span class="article-cat">${a.categorie || 'Éditions'}</span>
         <h1 class="article-h1">${a.titre}</h1>
         <div class="byline">
@@ -728,11 +728,11 @@ async function renderCartPanel() {
       const price = parseFloat(product.product_discount_price || product.product_price)
       return `
         <div class="cart-item-row" data-id="${product.product_id}">
-          <a href="index.html?product=${product.product_id}" class="cart-item-img" style="display:block">
+          <a href="/index.html?product=${product.product_id}" class="cart-item-img" style="display:block">
             <img src="https://brumeconceptstore.hiboutik.com/myshop/images/?img=big_${product.product_id}-1.jpg" alt="" onerror="this.style.display='none'">
           </a>
           <div>
-            <a href="index.html?product=${product.product_id}" class="cart-item-name" style="text-decoration:none;color:inherit;display:block">${product.product_model || 'Produit #' + product.product_id}</a>
+            <a href="/index.html?product=${product.product_id}" class="cart-item-name" style="text-decoration:none;color:inherit;display:block">${product.product_model || 'Produit #' + product.product_id}</a>
             <div class="cart-item-price">${fmtPrice(price * qty)}</div>
           </div>
           <div class="cart-item-qty">
