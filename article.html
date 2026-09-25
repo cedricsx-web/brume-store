@@ -186,8 +186,10 @@
     #product-modal { width: 94vw; max-height: 88vh; max-height: 88dvh; }
     .modal-inner { grid-template-columns: 1fr; }
     .modal-img-wrap { aspect-ratio: auto; width: 100%; min-height: 180px; max-height: 55vh; max-height: 55dvh; }
-    .modal-img-wrap .modal-add { position: absolute; bottom: 0; left: 0; right: 0; z-index: 5; width: 100%; padding: 14px; background: rgba(45,74,62,0.88); backdrop-filter: blur(6px); border-radius: 0; }
-    .modal-info { padding: 14px 20px 18px; gap: 6px; }
+    .modal-info { padding: 14px 20px 18px; gap: 6px; display: flex; flex-direction: column; }
+    /* Bouton toujours dans .modal-info — order:-1 le place visuellement en premier
+       sans déplacement DOM (évite le bug du bouton perdu entre deux ouvertures) */
+    .modal-add { order: -1; padding: 14px; }
     .modal-name { font-size: 18px; }
     .modal-reassurance { display: none; }
     .modal-close { top: 8px; right: 8px; width: 28px; height: 28px; background: rgba(0,0,0,0.7); border: 1.5px solid rgba(255,255,255,0.6); }
@@ -649,25 +651,12 @@ async function openProductModal(productId) {
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80)
   history.pushState({}, '', `/produit/${p.product_id}-${_slug}.html`)
-
-  // Mobile: move add button onto image
-  if (window.innerWidth <= 700) {
-    const btn = document.getElementById('modal-add-btn')
-    const imgWrap = document.querySelector('#product-modal .modal-img-wrap')
-    if (btn && imgWrap && btn.parentNode !== imgWrap) imgWrap.appendChild(btn)
-  }
 }
 
 function closeProductModal() {
   document.getElementById('product-modal').classList.remove('open')
   document.getElementById('modal-overlay').classList.remove('active')
   document.body.style.overflow = ''
-
-  // Move add button back to modal-info for desktop
-  var btn = document.getElementById('modal-add-btn')
-  var info = document.querySelector('#product-modal .modal-info')
-  var reassurance = document.querySelector('#product-modal .modal-reassurance')
-  if (btn && info && btn.parentNode !== info) info.insertBefore(btn, reassurance)
 
   // Restaure l'URL de l'article (retire le slug produit ajouté à l'ouverture)
   history.pushState({}, '', window.location.pathname.replace(/\/produit\/[^?#]*/, '') || window.location.href.split('?')[0])
