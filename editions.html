@@ -43,7 +43,11 @@
   /* NAV — hamburger gauche, logo centre, actions droite (identique à article.html et index.html) */
   .site-header { position: fixed; top: 0; left: 0; right: 0; z-index: 300; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 40px; height: 64px; background: rgba(var(--bg-rgb),.92); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(var(--ink-rgb),.1); }
   .hamburger-btn { justify-self: start; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; background: transparent; border: none; color: var(--ink); cursor: pointer; }
-  .header-logo { justify-self: center; font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 400; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); text-decoration: none; }
+  .header-logo { justify-self: center; display: flex; align-items: center; }
+  .header-logo-img { height: 40px; width: auto; display: none; }
+  .header-logo-img.logo-day { display: block; }
+  [data-theme="dark"] .header-logo-img.logo-day { display: none; }
+  [data-theme="dark"] .header-logo-img.logo-night { display: block; }
   .header-right { justify-self: end; display: flex; align-items: center; gap: 20px; }
   /* Le dropdown est en position: fixed pour échapper au stacking context du header
      (backdrop-filter sur le header créerait un stacking context qui confinerait un
@@ -143,7 +147,10 @@
     </svg>
   </button>
 
-  <a href="/index.html" class="header-logo" aria-label="Brüme Concept Store">BrüMe</a>
+  <a href="/index.html" class="header-logo" aria-label="Brüme Concept Store">
+    <img src="img/brume-logo-blue.svg" alt="Brüme Concept Store" class="header-logo-img logo-day" />
+    <img src="img/brume-logo-white.svg" alt="Brüme Concept Store" class="header-logo-img logo-night" />
+  </a>
 
   <div class="header-right">
     <button class="theme-toggle" id="theme-toggle" aria-label="Changer de thème jour/nuit">
