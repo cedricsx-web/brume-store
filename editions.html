@@ -40,14 +40,22 @@
   }
   body { background: var(--bg); color: var(--ink); font-family: 'DM Sans', sans-serif; font-weight: 300; -webkit-font-smoothing: antialiased; }
 
-  /* NAV */
-  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 300; display: flex; align-items: center; justify-content: space-between; padding: 20px 40px; background: var(--bg); border-bottom: 1px solid rgba(var(--ink-rgb),.1); }
-  .nav-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 400; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); text-decoration: none; }
-  .nav-links { display: flex; gap: 32px; }
-  .nav-links a { font-family: 'Space Mono', monospace; font-size: .65rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); text-decoration: none; opacity: .7; transition: opacity .2s; }
-  .nav-links a:hover, .nav-links a.active { opacity: 1; color: var(--accent); }
-  .cart-link { display: inline-flex; align-items: center; gap: 6px; }
-  #cart-badge { background: var(--accent); color: var(--on-accent); font-size: .6rem; padding: 1px 6px; border-radius: 10px; display: none; }
+  /* NAV — hamburger gauche, logo centre, actions droite (identique à article.html et index.html) */
+  .site-header { position: fixed; top: 0; left: 0; right: 0; z-index: 300; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 40px; height: 64px; background: rgba(var(--bg-rgb),.92); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(var(--ink-rgb),.1); }
+  .hamburger-btn { justify-self: start; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 0; background: transparent; border: none; color: var(--ink); cursor: pointer; }
+  .header-logo { justify-self: center; font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 400; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); text-decoration: none; }
+  .header-right { justify-self: end; display: flex; align-items: center; gap: 20px; }
+  /* Le dropdown est en position: fixed pour échapper au stacking context du header
+     (backdrop-filter sur le header créerait un stacking context qui confinerait un
+     élément position:absolute, causant le bug "menu masqué par le contenu") */
+  .nav-menu { display: none; flex-direction: column; position: fixed; top: 64px; left: 40px; width: auto; min-width: 200px; background: rgba(var(--bg-rgb),.98); backdrop-filter: blur(12px); border: 1px solid rgba(var(--ink-rgb),.1); border-radius: 4px; padding: 16px 24px; z-index: 400; }
+  .nav-menu.open { display: flex; }
+  .nav-menu-links { display: flex; flex-direction: column; gap: 2px; }
+  .nav-menu a { font-family: 'Space Mono', monospace; font-size: .65rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); text-decoration: none; opacity: .7; padding: 6px 0; transition: opacity .2s; }
+  .nav-menu a:hover, .nav-menu a.active { opacity: 1; }
+  .theme-toggle { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; border: 1px solid rgba(var(--ink-rgb),.2); background: transparent; color: var(--ink); cursor: pointer; transition: border-color .2s, background .2s; }
+  .theme-toggle:hover { border-color: rgba(var(--ink-rgb),.45); background: rgba(var(--ink-rgb),.06); }
+  .theme-toggle svg { width: 14px; height: 14px; }
   #cart-badge.visible { display: inline-block; }
   .theme-toggle {
     display: flex; align-items: center; justify-content: center;
@@ -108,7 +116,7 @@
   @keyframes pulse { 0%, 80%, 100% { opacity: .2; transform: scale(.8); } 40% { opacity: 1; transform: scale(1); } }
 
   @media (max-width: 768px) {
-    nav { padding: 16px 20px; }
+    .site-header { padding: 0 20px; }
     .hero { grid-template-columns: 1fr; padding: 100px 20px 40px; }
     .featured { grid-template-columns: 1fr; }
     .featured-img { height: 300px; }
@@ -126,12 +134,18 @@
 </head>
 <body>
 
-<nav>
-  <a href="/index.html" class="nav-logo">BrüMe</a>
-  <div class="nav-links">
-    <a href="/index.html">Boutique</a>
-    <a href="/editions.html" class="active">Éditions</a>
-    <a href="/index.html#boutique" class="cart-link">Panier <span id="cart-badge"></span></a>
+<header class="site-header">
+  <button class="hamburger-btn" id="hamburger-btn" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav-menu">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+
+  <a href="/index.html" class="header-logo" aria-label="Brüme Concept Store">BrüMe</a>
+
+  <div class="header-right">
     <button class="theme-toggle" id="theme-toggle" aria-label="Changer de thème jour/nuit">
       <svg class="icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
@@ -142,7 +156,14 @@
       </svg>
     </button>
   </div>
-</nav>
+</header>
+
+<div class="nav-menu" id="nav-menu" aria-label="Menu principal">
+  <div class="nav-menu-links">
+    <a href="/index.html">Boutique</a>
+    <a href="/editions.html" class="active">Éditions</a>
+  </div>
+</div>
 
 <section class="hero">
   <div>
