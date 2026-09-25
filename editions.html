@@ -41,7 +41,7 @@
   body { background: var(--bg); color: var(--ink); font-family: 'DM Sans', sans-serif; font-weight: 300; -webkit-font-smoothing: antialiased; }
 
   /* NAV */
-  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 20px 40px; background: var(--bg); border-bottom: 1px solid rgba(var(--ink-rgb),.1); }
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 300; display: flex; align-items: center; justify-content: space-between; padding: 20px 40px; background: var(--bg); border-bottom: 1px solid rgba(var(--ink-rgb),.1); }
   .nav-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 400; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); text-decoration: none; }
   .nav-links { display: flex; gap: 32px; }
   .nav-links a { font-family: 'Space Mono', monospace; font-size: .65rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); text-decoration: none; opacity: .7; transition: opacity .2s; }
@@ -127,11 +127,11 @@
 <body>
 
 <nav>
-  <a href="index.html" class="nav-logo">BrüMe</a>
+  <a href="/index.html" class="nav-logo">BrüMe</a>
   <div class="nav-links">
-    <a href="index.html">Boutique</a>
-    <a href="editions.html" class="active">Éditions</a>
-    <a href="index.html#boutique" class="cart-link">Panier <span id="cart-badge"></span></a>
+    <a href="/index.html">Boutique</a>
+    <a href="/editions.html" class="active">Éditions</a>
+    <a href="/index.html#boutique" class="cart-link">Panier <span id="cart-badge"></span></a>
     <button class="theme-toggle" id="theme-toggle" aria-label="Changer de thème jour/nuit">
       <svg class="icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
